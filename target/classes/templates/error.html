@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lỗi hệ thống</title>
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+<body class="with-background">
+<div class="error-box">
+    <h1>Đã xảy ra lỗi</h1>
+    <p th:text="${errorMessage}">Có lỗi xảy ra. Vui lòng thử lại sau.</p>
+    <a href="/products">Về trang sản phẩm</a>
+</div>
+</body>
+</html>

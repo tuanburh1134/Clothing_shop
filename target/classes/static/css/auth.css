@@ -1,0 +1,141 @@
+.auth-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    background: #f5f0e8;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    padding: 0 18px 18px;
+}
+
+.auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0 -18px 14px;
+}
+
+.auth-tab {
+    border: 0;
+    background: #d8ece7;
+    color: #5c8f91;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    padding: 12px 8px;
+    cursor: pointer;
+}
+
+.auth-tab.active {
+    background: #f5f0e8;
+    color: #1d4f56;
+}
+
+.brand-wrap {
+    text-align: center;
+    margin: 8px 0 14px;
+}
+
+.brand-wrap h1 {
+    margin: 0;
+    color: #154e57;
+    font-size: 29px;
+}
+
+.form-pane {
+    display: none;
+}
+
+.form-pane.active {
+    display: block;
+}
+
+.form-pane label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.form-pane input[type="text"],
+.form-pane input[type="password"] {
+    width: 100%;
+    border: 1px solid #d6c4ae;
+    border-radius: 7px;
+    padding: 11px 12px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0 14px;
+    font-size: 13px;
+}
+
+.checkbox-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #456365;
+}
+
+.hint {
+    color: #2f6f78;
+}
+
+.primary-btn {
+    width: 100%;
+    border: 0;
+    background: #0f5c63;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 7px;
+    padding: 12px;
+    cursor: pointer;
+}
+
+.small-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: #4d6d6f;
+    text-align: center;
+}
+
+.flash {
+    border-radius: 7px;
+    padding: 8px 10px;
+    margin: 0 0 10px;
+    font-size: 13px;
+}
+
+.flash.success {
+    background: #dff5e7;
+    color: #1d6a3b;
+}
+
+.flash.error {
+    background: #ffe8e8;
+    color: #7d2e2e;
+}
+
+.flash.neutral {
+    background: #e8f0ff;
+    color: #2f4a7d;
+}
+
+.field-error {
+    color: #9f1f1f;
+    margin: -6px 0 10px;
+    font-size: 12px;
+}
+
+@media (max-width: 500px) {
+    .auth-card {
+        max-width: 100%;
+    }
+}

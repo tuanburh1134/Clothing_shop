@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clothing Shop - Đăng nhập</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body class="with-background">
+<div class="auth-shell">
+    <section class="auth-card">
+        <div class="auth-tabs">
+            <button class="auth-tab" id="loginTab" type="button">ĐĂNG NHẬP</button>
+            <button class="auth-tab" id="registerTab" type="button">ĐĂNG KÝ</button>
+        </div>
+
+        <div class="brand-wrap">
+            <h1>Quần áo nhà đài</h1>
+        </div>
+
+        <div class="flash success" th:if="${param.registered}">Đăng ký thành công. Bạn có thể đăng nhập ngay.</div>
+        <div class="flash error" th:if="${param.error}">Sai tài khoản hoặc mật khẩu.</div>
+        <div class="flash neutral" th:if="${param.logout}">Bạn đã đăng xuất.</div>
+        <div class="flash error" th:if="${registerError}" th:text="${registerError}"></div>
+
+        <form id="loginForm" class="form-pane" th:action="@{/login}" method="post">
+            <label>
+                <input type="text" name="username" placeholder="Email hoặc Số điện thoại" required>
+            </label>
+            <label>
+                <input type="password" name="password" placeholder="Mật khẩu" required>
+            </label>
+            <div class="form-row">
+                <label class="checkbox-line">
+                    <input type="checkbox" name="remember-me">
+                    <span>Ghi nhớ tôi</span>
+                </label>
+                <span class="hint">Quên mật khẩu?</span>
+            </div>
+            <button type="submit" class="primary-btn">ĐĂNG NHẬP</button>
+        </form>
+
+        <form id="registerForm" class="form-pane" th:action="@{/register}" method="post" th:object="${registerRequest}">
+            <label>
+                <input type="text" th:field="*{username}" placeholder="Tên đăng nhập" required>
+            </label>
+            <p class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></p>
+
+            <label>
+                <input type="password" th:field="*{password}" placeholder="Mật khẩu" required>
+            </label>
+            <p class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></p>
+
+            <label>
+                <input type="password" th:field="*{confirmPassword}" placeholder="Nhập lại mật khẩu" required>
+            </label>
+            <p class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></p>
+
+            <button type="submit" class="primary-btn">ĐĂNG KÝ</button>
+        </form>
+    </section>
+</div>
+
+<script src="/js/auth.js"></script>
+<script th:inline="javascript">
+    window.AUTH_ACTIVE_TAB = /*[[${activeTab}]]*/ null;
+</script>
+</body>
+</html>

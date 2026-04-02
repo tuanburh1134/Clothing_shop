@@ -1,0 +1,21 @@
+spring:
+  thymeleaf:
+    cache: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/shop
+    username: root
+    password: NewStrongPass!123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    root: INFO
+
+app:
+  security:
+    admin:
+      username: admin
+      password: admin

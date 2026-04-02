@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div class="page-wrap">
+    <header class="top-bar">
+        <h1>Sản phẩm</h1>
+        <div class="actions">
+            <a sec:authorize="hasRole('ADMIN')" class="action-link" href="/admin/products/new">+ Thêm sản phẩm</a>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="logout-btn">Đăng xuất</button>
+            </form>
+        </div>
+    </header>
+
+    <section class="product-grid">
+        <article class="product-card" th:each="product : ${products}">
+            <div class="product-image-wrap">
+                <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" th:alt="${product.name}">
+                <div th:if="${product.imageUrl == null}" class="product-image-placeholder">No Image</div>
+            </div>
+            <div class="product-info">
+                <h3 th:text="${product.name}">Tên sản phẩm</h3>
+                <p>Giá: <strong th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                <p>Tồn kho: <span th:text="${product.quantity}">0</span></p>
+            </div>
+            <div class="card-actions" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{'/admin/products/' + ${product.id} + '/edit'}">Sửa</a>
+                <form th:action="@{'/admin/products/' + ${product.id} + '/delete'}" method="post">
+                    <button type="submit">Xóa</button>
+                </form>
+            </div>
+        </article>
+    </section>
+
+    <p class="empty-state" th:if="${#lists.isEmpty(products)}">Chưa có sản phẩm nào.</p>
+</div>
+</body>
+</html>

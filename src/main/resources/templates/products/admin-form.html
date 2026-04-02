@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Sản phẩm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div class="page-wrap narrow">
+    <h1 th:text="${isEdit} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Sản phẩm</h1>
+
+    <form class="admin-form"
+          th:action="${isEdit} ? @{'/admin/products/' + ${productId}} : @{/admin/products}"
+          th:object="${productForm}"
+            enctype="multipart/form-data"
+          method="post">
+        <label>Tên sản phẩm</label>
+        <input type="text" th:field="*{name}" placeholder="Ví dụ: Áo thun basic">
+        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+
+        <label>Giá</label>
+        <input type="number" th:field="*{price}" step="0.01" min="0.01" placeholder="100000">
+        <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></p>
+
+        <label>Số lượng</label>
+        <input type="number" th:field="*{quantity}" min="0" placeholder="10">
+        <p class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></p>
+
+        <label>Ảnh sản phẩm</label>
+        <input type="file" name="imageFile" accept="image/png,image/jpeg,image/jpg,image/webp">
+        <p class="form-note">Bạn có thể bỏ qua nếu chưa muốn thêm ảnh.</p>
+
+        <div class="current-image" th:if="${existingImageUrl != null}">
+            <p>Ảnh hiện tại:</p>
+            <img th:src="${existingImageUrl}" alt="Ảnh sản phẩm hiện tại">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Lưu</button>
+            <a href="/products">Hủy</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

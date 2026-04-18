@@ -563,6 +563,62 @@
     margin-top: 8px;
 }
 
+.variant-select-group {
+    margin-top: 10px;
+}
+
+.variant-label {
+    margin: 0 0 6px;
+    font-weight: 700;
+    color: #2e5466;
+}
+
+.variant-chip-wrap {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.variant-chip {
+    border: 1px solid #b8cad8;
+    background: #fff;
+    color: #214a63;
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.variant-chip.selected {
+    border-color: #0f5c63;
+    background: #0f5c63;
+    color: #fff;
+}
+
+.variant-chip.disabled,
+.variant-chip:disabled {
+    border-color: #c8c8c8;
+    background: #ececec;
+    color: #8a8a8a;
+    cursor: not-allowed;
+}
+
+.variant-hint {
+    margin-top: 10px;
+    color: #3f6279;
+    font-size: 13px;
+}
+
+.buy-now-form {
+    margin: 0;
+}
+
+.buy-now-form button:disabled,
+.add-to-cart-form button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .variant-item strong,
 .variant-item span {
     display: block;

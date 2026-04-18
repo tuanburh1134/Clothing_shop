@@ -73,6 +73,7 @@
                         <div class="thumb" th:if="${item.productImageUrl == null}"></div>
                         <div>
                             <p class="order-item-name" th:text="${item.productName}">Tên sản phẩm</p>
+                            <p th:text="'Phân loại: ' + ${item.selectedColor} + ' / ' + ${item.selectedSize}">Phân loại</p>
                             <p th:text="'SL: ' + ${item.quantity} + ' | Giá: ' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">Chi tiết</p>
                         </div>
                         <strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>

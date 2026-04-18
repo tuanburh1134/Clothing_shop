@@ -24,7 +24,7 @@
         <section class="cart-grid">
             <article class="cart-item" th:each="item : ${cartItems}">
                 <label class="cart-tick-wrap">
-                    <input type="checkbox" name="selectedProductIds" th:value="${item.productId}" class="cart-item-check">
+                    <input type="checkbox" name="selectedCartKeys" th:value="${item.cartKey}" class="cart-item-check">
                     <span class="tick-ui">✓</span>
                 </label>
 
@@ -36,6 +36,7 @@
                 <div class="cart-item-info">
                     <h3 th:text="${item.name}">Tên sản phẩm</h3>
                     <p th:text="${item.shortDescription} ?: '...'">Mô tả ngắn</p>
+                    <p>Phân loại: <strong th:text="${item.color} + ' / ' + ${item.size}">Màu / Size</strong></p>
                     <p>Số lượng: <strong th:text="${item.quantity}">1</strong></p>
                     <p>Đơn giá: <strong th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
                     <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>

@@ -3,6 +3,7 @@ package com.example.shop.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,15 @@ public class GlobalExceptionHandler {
         log.warn("Resource not found: {}", ex.getMessage());
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("errorMessage", ex.getMessage());
+        return modelAndView;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ModelAndView handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        log.warn("Upload exceeds max size", ex);
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.setStatus(HttpStatus.PAYLOAD_TOO_LARGE);
+        modelAndView.addObject("errorMessage", "Kích thước ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 10MB.");
         return modelAndView;
     }
 

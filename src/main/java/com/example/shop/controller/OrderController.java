@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -42,30 +46,38 @@ public class OrderController {
 
     @GetMapping("/checkout/buy-now")
     public String buyNowCheckout(@RequestParam("productId") Long productId,
+                                 @RequestParam("selectedColor") String selectedColor,
+                                 @RequestParam("selectedSize") String selectedSize,
                                  Authentication authentication,
                                  HttpSession session,
                                  Model model) {
-        List<CheckoutItemInput> inputs = List.of(new CheckoutItemInput(productId, 1));
+        List<CheckoutItemInput> inputs = List.of(new CheckoutItemInput(
+                productId,
+                clean(selectedColor),
+                normalizeSize(selectedSize),
+                1
+        ));
         session.setAttribute(CHECKOUT_ITEMS_SESSION_KEY, inputs);
         session.setAttribute(CHECKOUT_SOURCE_SESSION_KEY, "buy-now");
         return renderCheckout(authentication.getName(), inputs, model);
     }
 
     @PostMapping("/checkout/cart")
-    public String cartCheckout(@RequestParam(name = "selectedProductIds", required = false) List<Long> selectedProductIds,
+    public String cartCheckout(@RequestParam(name = "selectedCartKeys", required = false) List<String> selectedCartKeys,
                                Authentication authentication,
                                HttpSession session,
                                Model model) {
-        if (selectedProductIds == null || selectedProductIds.isEmpty()) {
+        if (selectedCartKeys == null || selectedCartKeys.isEmpty()) {
             return "redirect:/cart?checkoutError";
         }
 
-        Map<Long, Integer> cart = getCart(session);
+        Map<String, Integer> cart = getCart(session);
         List<CheckoutItemInput> inputs = new ArrayList<>();
-        for (Long productId : selectedProductIds) {
-            Integer qty = cart.get(productId);
-            if (qty != null && qty > 0) {
-                inputs.add(new CheckoutItemInput(productId, qty));
+        for (String key : selectedCartKeys) {
+            Integer qty = cart.get(key);
+            CartSelection selection = parseCartKey(key);
+            if (qty != null && qty > 0 && selection != null) {
+                inputs.add(new CheckoutItemInput(selection.productId(), selection.color(), selection.size(), qty));
             }
         }
 
@@ -96,22 +108,15 @@ public class OrderController {
             return "redirect:/cart?checkoutError";
         }
 
-        List<Long> productIds = new ArrayList<>();
-        List<Integer> quantities = new ArrayList<>();
-        for (CheckoutItemInput input : inputs) {
-            productIds.add(input.getProductId());
-            quantities.add(input.getQuantity());
-        }
-
-        List<CheckoutItemView> items = orderService.buildCheckoutItems(productIds, quantities);
+        List<CheckoutItemView> items = orderService.buildCheckoutItems(inputs);
         CustomerOrder order = orderService.createOrder(authentication.getName(), phoneNumber, shippingAddress, items);
         notificationService.notifyAdminNewOrder(order.getId(), authentication.getName());
 
         String source = (String) session.getAttribute(CHECKOUT_SOURCE_SESSION_KEY);
         if ("cart".equals(source)) {
-            Map<Long, Integer> cart = getCart(session);
+            Map<String, Integer> cart = getCart(session);
             for (CheckoutItemInput input : inputs) {
-                cart.remove(input.getProductId());
+                cart.remove(buildCartKey(input.getProductId(), input.getColor(), input.getSize()));
             }
             session.setAttribute(CART_SESSION_KEY, cart);
         }
@@ -131,14 +136,7 @@ public class OrderController {
     }
 
     private String renderCheckout(String username, List<CheckoutItemInput> inputs, Model model) {
-        List<Long> productIds = new ArrayList<>();
-        List<Integer> quantities = new ArrayList<>();
-        for (CheckoutItemInput input : inputs) {
-            productIds.add(input.getProductId());
-            quantities.add(input.getQuantity());
-        }
-
-        List<CheckoutItemView> checkoutItems = orderService.buildCheckoutItems(productIds, quantities);
+        List<CheckoutItemView> checkoutItems = orderService.buildCheckoutItems(inputs);
         BigDecimal total = checkoutItems.stream()
                 .map(CheckoutItemView::getLineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -151,13 +149,13 @@ public class OrderController {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<Long, Integer> getCart(HttpSession session) {
+    private Map<String, Integer> getCart(HttpSession session) {
         Object raw = session.getAttribute(CART_SESSION_KEY);
         if (raw instanceof Map<?, ?> rawMap) {
-            Map<Long, Integer> casted = new LinkedHashMap<>();
+            Map<String, Integer> casted = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
-                if (entry.getKey() instanceof Long id && entry.getValue() instanceof Integer qty && qty > 0) {
-                    casted.put(id, qty);
+                if (entry.getKey() instanceof String key && entry.getValue() instanceof Integer qty && qty > 0) {
+                    casted.put(key, qty);
                 }
             }
             return casted;
@@ -171,12 +169,73 @@ public class OrderController {
         if (raw instanceof List<?> rawList) {
             List<CheckoutItemInput> inputs = new ArrayList<>();
             for (Object item : rawList) {
-                if (item instanceof CheckoutItemInput input && input.getProductId() != null && input.getQuantity() > 0) {
+                if (item instanceof CheckoutItemInput input
+                        && input.getProductId() != null
+                        && clean(input.getColor()) != null
+                        && normalizeSize(input.getSize()) != null
+                        && input.getQuantity() > 0) {
+                    input.setColor(clean(input.getColor()));
+                    input.setSize(normalizeSize(input.getSize()));
                     inputs.add(input);
                 }
             }
             return inputs;
         }
         return List.of();
+    }
+
+    private String buildCartKey(Long productId, String color, String size) {
+        return productId + "|" + urlEncode(color) + "|" + urlEncode(size);
+    }
+
+    private CartSelection parseCartKey(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+
+        String[] parts = key.split("\\|", 3);
+        if (parts.length != 3) {
+            return null;
+        }
+
+        try {
+            Long productId = Long.parseLong(parts[0]);
+            String color = clean(urlDecode(parts[1]));
+            String size = normalizeSize(urlDecode(parts[2]));
+            if (color == null || size == null) {
+                return null;
+            }
+            return new CartSelection(productId, color, size);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String clean(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String normalizeSize(String value) {
+        String cleaned = clean(value);
+        if (cleaned == null) {
+            return null;
+        }
+        return cleaned.toUpperCase(Locale.ROOT);
+    }
+
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String urlDecode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
+    }
+
+    private record CartSelection(Long productId, String color, String size) {
     }
 }

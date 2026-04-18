@@ -51,18 +51,46 @@
             </div>
 
             <div class="variant-box" th:if="${!#lists.isEmpty(product.variants)}">
-                <h3>Màu sắc và tồn kho</h3>
-                <div class="variant-item" th:each="variant : ${product.variants}">
-                    <strong th:text="${variant.color}">Màu</strong>
-                    <span th:text="'S: ' + ${variant.s} + ' | M: ' + ${variant.m} + ' | L: ' + ${variant.l} + ' | XL: ' + ${variant.xl} + ' | XXL: ' + ${variant.xxl}">Chi tiết size</span>
+                <h3>Chọn màu sắc và size</h3>
+
+                <div id="variantStockData" hidden>
+                    <div class="variant-stock-row"
+                         th:each="variant : ${product.variants}"
+                         th:data-color="${variant.color}"
+                         th:data-s="${variant.s}"
+                         th:data-m="${variant.m}"
+                         th:data-l="${variant.l}"
+                         th:data-xl="${variant.xl}"
+                         th:data-xxl="${variant.xxl}">
+                    </div>
                 </div>
+
+                <div class="variant-select-group">
+                    <p class="variant-label">Màu sắc</p>
+                    <div id="colorOptions" class="variant-chip-wrap"></div>
+                </div>
+
+                <div class="variant-select-group">
+                    <p class="variant-label">Size</p>
+                    <div id="sizeOptions" class="variant-chip-wrap"></div>
+                </div>
+
+                <p id="variantSelectionHint" class="variant-hint">Vui lòng chọn màu sắc và size trước khi mua.</p>
             </div>
 
+            <p class="notice error" th:if="${#lists.isEmpty(product.variants)}">Sản phẩm này chưa có biến thể màu và size để đặt hàng.</p>
+
             <div class="buy-actions">
-                <a class="action-link buy-now-btn" th:href="@{'/checkout/buy-now?productId=' + ${product.id}}">Mua ngay</a>
+                <form th:action="@{'/products/' + ${product.id} + '/buy-now'}" method="get" class="buy-now-form">
+                    <input type="hidden" name="selectedColor" id="buyNowSelectedColor">
+                    <input type="hidden" name="selectedSize" id="buyNowSelectedSize">
+                    <button type="submit" class="action-link buy-now-btn" th:disabled="${#lists.isEmpty(product.variants)}">Mua ngay</button>
+                </form>
                 <form th:action="@{'/products/' + ${product.id} + '/cart'}" method="post" class="add-to-cart-form js-add-to-cart-form">
                     <input type="hidden" name="redirectTo" th:value="@{'/products/' + ${product.id}}">
-                    <button type="submit" class="action-link">Thêm vào giỏ hàng</button>
+                    <input type="hidden" name="selectedColor" id="cartSelectedColor">
+                    <input type="hidden" name="selectedSize" id="cartSelectedSize">
+                    <button type="submit" class="action-link" th:disabled="${#lists.isEmpty(product.variants)}">Thêm vào giỏ hàng</button>
                 </form>
             </div>
         </div>

@@ -7,6 +7,8 @@ public class CheckoutItemView {
     private Long productId;
     private String productName;
     private String imageUrl;
+    private String color;
+    private String size;
     private BigDecimal unitPrice;
     private int quantity;
     private BigDecimal lineTotal;
@@ -33,6 +35,22 @@ public class CheckoutItemView {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
     }
 
     public BigDecimal getUnitPrice() {

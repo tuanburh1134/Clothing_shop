@@ -3,6 +3,7 @@ package com.example.shop.controller;
 import com.example.shop.dto.CartItemView;
 import com.example.shop.dto.ProductCategoryCardView;
 import com.example.shop.dto.ProductForm;
+import com.example.shop.dto.ProductVariant;
 import com.example.shop.entity.Product;
 import com.example.shop.entity.ProductCategory;
 import com.example.shop.exception.BadRequestException;
@@ -20,10 +21,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -75,21 +80,30 @@ public class ProductController {
 
     @PostMapping("/products/{id}/cart")
     public String addToCart(@PathVariable Long id,
+                            @RequestParam("selectedColor") String selectedColor,
+                            @RequestParam("selectedSize") String selectedSize,
                             @RequestParam(name = "redirectTo", required = false) String redirectTo,
                             HttpSession session) {
-        productService.getProductById(id);
+        Product product = productService.getProductById(id);
+        CartSelection selection = resolveSelection(product, selectedColor, selectedSize);
 
-        Map<Long, Integer> cart = getCart(session);
-        cart.merge(id, 1, Integer::sum);
+        Map<String, Integer> cart = getCart(session);
+        String cartKey = buildCartKey(id, selection.color(), selection.size());
+        cart.merge(cartKey, 1, Integer::sum);
         session.setAttribute(CART_SESSION_KEY, cart);
 
         return "redirect:" + appendQuery(resolveRedirect(redirectTo), "cartAdded");
     }
 
-    @PostMapping("/products/{id}/buy-now")
-    public String buyNow(@PathVariable Long id) {
-        productService.getProductById(id);
-        return "redirect:/checkout/buy-now?productId=" + id;
+    @GetMapping("/products/{id}/buy-now")
+    public String buyNow(@PathVariable Long id,
+                         @RequestParam("selectedColor") String selectedColor,
+                         @RequestParam("selectedSize") String selectedSize) {
+        Product product = productService.getProductById(id);
+        CartSelection selection = resolveSelection(product, selectedColor, selectedSize);
+        return "redirect:/checkout/buy-now?productId=" + id
+                + "&selectedColor=" + urlEncode(selection.color())
+                + "&selectedSize=" + urlEncode(selection.size());
     }
 
     @GetMapping("/cart")
@@ -232,13 +246,13 @@ public class ProductController {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<Long, Integer> getCart(HttpSession session) {
+    private Map<String, Integer> getCart(HttpSession session) {
         Object raw = session.getAttribute(CART_SESSION_KEY);
         if (raw instanceof Map<?, ?> rawMap) {
-            Map<Long, Integer> casted = new LinkedHashMap<>();
+            Map<String, Integer> casted = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
-                if (entry.getKey() instanceof Long id && entry.getValue() instanceof Integer qty && qty > 0) {
-                    casted.put(id, qty);
+                if (entry.getKey() instanceof String key && entry.getValue() instanceof Integer qty && qty > 0) {
+                    casted.put(key, qty);
                 }
             }
             return casted;
@@ -247,22 +261,32 @@ public class ProductController {
     }
 
     private List<CartItemView> buildCartItems(HttpSession session) {
-        Map<Long, Integer> cart = getCart(session);
+        Map<String, Integer> cart = getCart(session);
         List<CartItemView> items = new ArrayList<>();
 
-        Iterator<Map.Entry<Long, Integer>> iterator = cart.entrySet().iterator();
+        Iterator<Map.Entry<String, Integer>> iterator = cart.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<Long, Integer> entry = iterator.next();
-            Long productId = entry.getKey();
+            Map.Entry<String, Integer> entry = iterator.next();
+            CartSelection selection = parseCartKey(entry.getKey());
             Integer quantity = entry.getValue();
 
+            if (selection == null) {
+                iterator.remove();
+                continue;
+            }
+
             try {
-                Product product = productService.getProductById(productId);
+                Product product = productService.getProductById(selection.productId());
+                resolveSelection(product, selection.color(), selection.size());
+
                 CartItemView item = new CartItemView();
-                item.setProductId(product.getId());
+                item.setCartKey(entry.getKey());
+                item.setProductId(selection.productId());
                 item.setName(product.getName());
                 item.setShortDescription(product.getShortDescription());
                 item.setImageUrl(product.getImageUrl());
+                item.setColor(selection.color());
+                item.setSize(selection.size());
                 item.setUnitPrice(product.getDiscountedPrice());
                 item.setQuantity(quantity);
                 item.setLineTotal(product.getDiscountedPrice().multiply(BigDecimal.valueOf(quantity)));
@@ -274,6 +298,101 @@ public class ProductController {
 
         session.setAttribute(CART_SESSION_KEY, cart);
         return items;
+    }
+
+    private CartSelection resolveSelection(Product product, String selectedColor, String selectedSize) {
+        String rawColor = clean(selectedColor);
+        String rawSize = normalizeSize(selectedSize);
+
+        if (rawColor == null || rawSize == null) {
+            throw new BadRequestException("Vui lòng chọn màu sắc và size trước khi mua hàng");
+        }
+
+        for (ProductVariant variant : product.getVariants()) {
+            String color = clean(variant.getColor());
+            if (color == null || !color.equalsIgnoreCase(rawColor)) {
+                continue;
+            }
+
+            int available = getSizeQuantity(variant, rawSize);
+            if (available <= 0) {
+                throw new BadRequestException("Size đã chọn hiện đang hết hàng");
+            }
+
+            return new CartSelection(product.getId(), color, rawSize);
+        }
+
+        throw new BadRequestException("Màu sắc hoặc size không hợp lệ");
+    }
+
+    private int getSizeQuantity(ProductVariant variant, String size) {
+        return switch (size) {
+            case "S" -> number(variant.getS());
+            case "M" -> number(variant.getM());
+            case "L" -> number(variant.getL());
+            case "XL" -> number(variant.getXl());
+            case "XXL" -> number(variant.getXxl());
+            default -> 0;
+        };
+    }
+
+    private int number(Integer value) {
+        return value == null ? 0 : value;
+    }
+
+    private String clean(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String normalizeSize(String value) {
+        String cleaned = clean(value);
+        if (cleaned == null) {
+            return null;
+        }
+        return cleaned.toUpperCase(Locale.ROOT);
+    }
+
+    private String buildCartKey(Long productId, String color, String size) {
+        return productId + "|" + urlEncode(color) + "|" + urlEncode(size);
+    }
+
+    private CartSelection parseCartKey(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+
+        String[] parts = key.split("\\|", 3);
+        if (parts.length != 3) {
+            return null;
+        }
+
+        try {
+            Long productId = Long.parseLong(parts[0]);
+            String color = clean(urlDecode(parts[1]));
+            String size = normalizeSize(urlDecode(parts[2]));
+            if (color == null || size == null) {
+                return null;
+            }
+            return new CartSelection(productId, color, size);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String urlDecode(String value) {
+        return URLDecoder.decode(value, StandardCharsets.UTF_8);
+    }
+
+    private record CartSelection(Long productId, String color, String size) {
     }
 
     private List<ProductCategoryCardView> buildCategoryCards() {

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài khoản</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/account.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+
+<main class="account-page-wrap">
+    <section class="account-layout">
+        <aside class="account-sidebar">
+            <h2>Khu vực tài khoản</h2>
+            <a class="account-tab active" href="/account">Thông tin cá nhân</a>
+            <a class="account-tab" href="/account/orders">Đơn hàng</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="logout-button">Đăng xuất</button>
+            </form>
+        </aside>
+
+        <section class="account-content">
+            <header class="account-content-head">
+                <h1>Tài khoản của tôi</h1>
+                <a th:if="${!editMode}" class="edit-link" href="/account?edit=true">Thêm thông tin</a>
+            </header>
+
+            <p class="notice success" th:if="${param.saved}">Đã lưu thông tin tài khoản thành công.</p>
+            <p class="notice error" th:if="${formError}" th:text="${formError}"></p>
+
+            <div th:if="${!editMode}" class="profile-grid">
+                <div class="profile-avatar-card">
+                    <img th:if="${accountUser.avatarUrl != null}" th:src="${accountUser.avatarUrl}" alt="Ảnh đại diện" class="profile-avatar-image">
+                    <div th:if="${accountUser.avatarUrl == null}" class="profile-avatar-placeholder">AVT</div>
+                </div>
+
+                <div class="profile-info-card">
+                    <div class="profile-row"><span>Họ tên</span><strong th:text="${accountUser.fullName != null ? accountUser.fullName : '...'}">...</strong></div>
+                    <div class="profile-row"><span>Số điện thoại</span><strong th:text="${accountUser.phoneNumber != null ? accountUser.phoneNumber : '...'}">...</strong></div>
+                    <div class="profile-row"><span>Email</span><strong th:text="${accountUser.contactEmail != null ? accountUser.contactEmail : '...'}">...</strong></div>
+                    <div class="profile-row"><span>Địa chỉ</span><strong th:text="${accountUser.address != null ? accountUser.address : '...'}">...</strong></div>
+                    <div class="profile-row"><span>Tên đăng nhập</span><strong th:text="${accountUser.username}">username</strong></div>
+                </div>
+            </div>
+
+            <form th:if="${editMode}" class="profile-form" th:action="@{/account/profile}" th:object="${accountProfileForm}" method="post" enctype="multipart/form-data">
+                <div class="profile-form-main">
+                    <label>
+                        Họ tên
+                        <input type="text" th:field="*{fullName}" placeholder="Nhập họ tên">
+                    </label>
+                    <p class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></p>
+
+                    <label>
+                        Số điện thoại
+                        <input type="text" th:field="*{phoneNumber}" placeholder="Nhập số điện thoại">
+                    </label>
+                    <p class="field-error" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></p>
+
+                    <label>
+                        Email
+                        <input type="text" th:field="*{contactEmail}" placeholder="Nhập email">
+                    </label>
+                    <p class="field-error" th:if="${#fields.hasErrors('contactEmail')}" th:errors="*{contactEmail}"></p>
+
+                    <label>
+                        Địa chỉ nhà
+                        <textarea th:field="*{address}" rows="4" placeholder="Nhập địa chỉ nhà"></textarea>
+                    </label>
+                    <p class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+                </div>
+
+                <aside class="profile-form-avatar">
+                    <p>Ảnh đại diện</p>
+                    <img th:if="${accountUser.avatarUrl != null}" th:src="${accountUser.avatarUrl}" alt="Ảnh đại diện" class="profile-avatar-image">
+                    <div th:if="${accountUser.avatarUrl == null}" class="profile-avatar-placeholder">AVT</div>
+                    <input type="file" name="avatarFile" accept=".png,.jpg,.jpeg,.webp">
+                </aside>
+
+                <div class="profile-form-actions">
+                    <button type="submit">Lưu thông tin</button>
+                    <a href="/account">Hủy</a>
+                </div>
+            </form>
+        </section>
+    </section>
+</main>
+</body>
+</html>

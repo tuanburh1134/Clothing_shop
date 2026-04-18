@@ -4,6 +4,8 @@ import com.example.shop.dto.RegisterRequest;
 import com.example.shop.exception.BadRequestException;
 import com.example.shop.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,7 +22,19 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping({"/", "/auth"})
+    @GetMapping("/")
+    public String home(Authentication authentication) {
+        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            return "redirect:/auth";
+        }
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+        return isAdmin ? "redirect:/admin/dashboard" : "redirect:/products";
+    }
+
+    @GetMapping("/auth")
     public String authPage(Model model) {
         if (!model.containsAttribute("registerRequest")) {
             model.addAttribute("registerRequest", new RegisterRequest());

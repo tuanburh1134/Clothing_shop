@@ -1,13 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clothing Shop</title>
+    <title>Shop quần áo</title>
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>Welcome to Clothing Shop</h1>
+    <div th:replace="~{fragments/site-header :: siteHeader}"></div>
+
+    <main class="home-page">
+        <section class="ad-carousel" aria-label="Ảnh quảng cáo nổi bật">
+            <div class="ad-carousel-track" id="adCarouselTrack">
+                <article class="ad-slide is-active">
+                    <img src="/images/quangcao1.jpg" alt="Quảng cáo 1" loading="eager">
+                </article>
+                <article class="ad-slide">
+                    <img src="/images/quangcao2.jpg" alt="Quảng cáo 2" loading="lazy">
+                </article>
+                <article class="ad-slide">
+                    <img src="/images/quangcao3.jpg" alt="Quảng cáo 3" loading="lazy">
+                </article>
+            </div>
+
+            <button type="button" class="ad-control prev" id="adPrev" aria-label="Ảnh trước">&#10094;</button>
+            <button type="button" class="ad-control next" id="adNext" aria-label="Ảnh sau">&#10095;</button>
+
+            <div class="ad-dots" id="adDots" aria-label="Chọn ảnh quảng cáo">
+                <button type="button" class="ad-dot is-active" data-slide="0" aria-label="Ảnh 1"></button>
+                <button type="button" class="ad-dot" data-slide="1" aria-label="Ảnh 2"></button>
+                <button type="button" class="ad-dot" data-slide="2" aria-label="Ảnh 3"></button>
+            </div>
+        </section>
+    </main>
+
     <script src="/js/main.js"></script>
 </body>
 </html>

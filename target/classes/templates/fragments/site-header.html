@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="siteHeader" class="site-header">
+    <div class="site-header-inner">
+        <a href="/" class="site-logo-link" aria-label="Về trang chủ">
+            <img th:src="@{/images/logo.png}" src="/images/logo.png" alt="Shop quần áo" class="site-logo-image">
+        </a>
+
+        <nav class="site-header-actions" aria-label="Chức năng nhanh">
+            <a class="site-header-btn" href="/account">
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="8" r="3.5"></circle>
+                    <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+                </svg>
+                Tài khoản
+            </a>
+            <a id="headerCartBtn" class="site-header-btn" href="/cart">
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="10" cy="19" r="1.6"></circle>
+                    <circle cx="17" cy="19" r="1.6"></circle>
+                    <path d="M3 4h2l2.2 10.2h10.9l2-7.2H7"></path>
+                </svg>
+                Giỏ hàng
+            </a>
+            <a class="site-header-btn" href="/account/orders">
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 10a4 4 0 1 1 8 0v4l1.8 2.5H6.2L8 14z"></path>
+                    <path d="M10 18a2 2 0 0 0 4 0"></path>
+                </svg>
+                Thông báo
+            </a>
+            <a sec:authorize="hasRole('ADMIN')" class="site-header-btn site-header-btn-admin" href="/admin/dashboard">
+                <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1"></path>
+                </svg>
+                Quản lí
+            </a>
+        </nav>
+    </div>
+</header>
+</body>
+</html>

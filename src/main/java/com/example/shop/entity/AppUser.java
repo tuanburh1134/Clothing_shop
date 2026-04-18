@@ -27,6 +27,21 @@ public class AppUser {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(name = "full_name", length = 120)
+    private String fullName;
+
+    @Column(name = "phone_number", length = 25)
+    private String phoneNumber;
+
+    @Column(name = "address", length = 255)
+    private String address;
+
+    @Column(name = "contact_email", length = 120)
+    private String contactEmail;
+
+    @Column(name = "avatar_url", length = 255)
+    private String avatarUrl;
+
     public AppUser() {
     }
 
@@ -62,5 +77,45 @@ public class AppUser {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }

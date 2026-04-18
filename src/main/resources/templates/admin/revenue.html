@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê doanh thu</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory">Quản lí kho</a>
+            <a href="/admin/revenue" class="active">Thống kê doanh thu</a>
+            <a href="/admin/orders">Quản lí đơn hàng</a>
+            <a href="/admin/notifications">Thông báo</a>
+            <a href="/admin/chat">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Thống kê doanh thu</p>
+                <h1>Trang doanh thu độc lập</h1>
+                <p>Bấm vào mục nào thì mở đúng trang đó, không dồn nhiều khu vực vào cùng một trang.</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="info-card">
+                <p>Trang này đã tách riêng, sẵn sàng để bổ sung biểu đồ theo ngày, tuần và tháng.</p>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

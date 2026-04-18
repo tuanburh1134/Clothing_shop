@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Quản lí kho</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory" class="active">Quản lí kho</a>
+            <a href="/admin/revenue">Thống kê doanh thu</a>
+            <a href="/admin/orders">Quản lí đơn hàng</a>
+            <a href="/admin/notifications">Thông báo</a>
+            <a href="/admin/chat">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Quản lí kho</p>
+                <h1 th:text="${isEdit} ? 'Cập nhật hàng hóa' : 'Thêm hàng hóa mới'">Quản lí hàng hóa</h1>
+                <p>Điền đầy đủ thông tin để sản phẩm hiển thị rõ ràng ở trang khách hàng.</p>
+            </div>
+        </section>
+
+          <form class="inventory-form"
+              th:action="@{${formAction}}"
+              th:object="${productForm}"
+              enctype="multipart/form-data"
+              method="post"
+              id="inventoryForm"
+              th:data-variants="${productForm.variantData}">
+
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <div class="flash error" th:if="${formError}" th:text="${formError}"></div>
+
+            <div class="form-grid two-columns">
+                <div>
+                    <label>Tên áo</label>
+                    <input type="text" th:field="*{name}" placeholder="Ví dụ: Áo thun basic nam">
+                    <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+                </div>
+
+                <div>
+                    <label>Danh mục</label>
+                    <select th:field="*{category}">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="category : ${categories}" th:value="${category.name()}" th:text="${category.label}"></option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></p>
+                </div>
+            </div>
+
+            <label>Mô tả ngắn</label>
+            <input type="text" th:field="*{shortDescription}" placeholder="Mô tả ngắn khi hiển thị ngoài trang sản phẩm">
+            <p class="field-error" th:if="${#fields.hasErrors('shortDescription')}" th:errors="*{shortDescription}"></p>
+
+            <label>Mô tả chi tiết</label>
+            <textarea th:field="*{description}" rows="5" placeholder="Thông tin chi tiết sẽ hiện khi khách hàng bấm vào sản phẩm"></textarea>
+            <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+
+            <div class="form-grid two-columns">
+                <div>
+                    <label>Ảnh sản phẩm đại diện</label>
+                    <input type="file" name="imageFile" accept="image/png,image/jpeg,image/jpg,image/webp">
+                    <div class="current-image" th:if="${existingImageUrl != null}">
+                        <p>Ảnh hiện tại:</p>
+                        <img th:src="${existingImageUrl}" alt="Ảnh đại diện">
+                    </div>
+                </div>
+
+                <div>
+                    <label>Ảnh chi tiết (có thể chọn nhiều ảnh)</label>
+                    <input type="file" name="detailImageFiles" multiple accept="image/png,image/jpeg,image/jpg,image/webp">
+                    <input type="hidden" th:value="*{existingDetailImageUrls}" name="existingDetailImageUrls">
+                    <div class="detail-thumb-list" th:if="${existingDetailImages != null and !#lists.isEmpty(existingDetailImages)}">
+                        <img th:each="detailImage : ${existingDetailImages}" th:src="${detailImage}" alt="Ảnh chi tiết">
+                    </div>
+                </div>
+            </div>
+
+            <div class="stock-builder">
+                <div class="stock-builder-head">
+                    <div>
+                        <label>Chọn màu sắc và số lượng theo size</label>
+                        <p class="form-note">Nhập màu sắc, bấm nút v để hiện size S, M, L, XL, XXL, rồi nhập tồn kho cho từng size.</p>
+                    </div>
+                    <button type="button" class="small-btn" id="addVariantBtn">+ Thêm màu sắc</button>
+                </div>
+
+                <div id="variantContainer"></div>
+                <input type="hidden" th:field="*{variantData}" id="variantDataField">
+                <input type="hidden" th:field="*{quantity}" id="totalQuantityField">
+                <p class="field-error" th:if="${#fields.hasErrors('variantData')}" th:errors="*{variantData}"></p>
+                <p class="stock-total">Tổng tồn kho: <strong id="totalQuantityPreview">0</strong></p>
+            </div>
+
+            <div class="form-grid two-columns">
+                <div>
+                    <label>Giá (VND)</label>
+                    <input type="text" id="priceDisplay" placeholder="100.000">
+                    <input type="hidden" th:field="*{price}" id="priceValue">
+                    <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></p>
+                </div>
+
+                <div>
+                    <label>Giảm giá (%)</label>
+                    <input type="number" th:field="*{discountPercent}" min="0" max="99" placeholder="Nhập từ 1 đến 99 nếu muốn giảm giá">
+                    <p class="field-error" th:if="${#fields.hasErrors('discountPercent')}" th:errors="*{discountPercent}"></p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit">Lưu sản phẩm</button>
+                <a href="/admin/inventory">Hủy</a>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script src="/js/inventory-admin.js"></script>
+</body>
+</html>

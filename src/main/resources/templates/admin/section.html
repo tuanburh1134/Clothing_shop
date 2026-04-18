@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Trang quản lí</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">Tổng quan</a>
+            <a href="/admin/inventory" th:classappend="${activePage == 'inventory'} ? 'active' : ''">Quản lí kho</a>
+            <a href="/admin/revenue" th:classappend="${activePage == 'revenue'} ? 'active' : ''">Thống kê doanh thu</a>
+            <a href="/admin/orders" th:classappend="${activePage == 'orders'} ? 'active' : ''">Quản lí đơn hàng</a>
+            <a href="/admin/notifications" th:classappend="${activePage == 'notifications'} ? 'active' : ''">Thông báo</a>
+            <a href="/admin/chat" th:classappend="${activePage == 'chat'} ? 'active' : ''">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Khu vực riêng</p>
+                <h1 th:text="${pageTitle}">Trang quản lí</h1>
+                <p th:text="${pageDescription}">Nội dung quản lí theo từng khu vực.</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="info-card">
+                <p th:text="${message}">Nội dung sẽ được phát triển tiếp.</p>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

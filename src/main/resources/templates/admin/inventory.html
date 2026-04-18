@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lí kho</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory" class="active">Quản lí kho</a>
+            <a href="/admin/revenue">Thống kê doanh thu</a>
+            <a href="/admin/orders">Quản lí đơn hàng</a>
+            <a href="/admin/notifications">Thông báo</a>
+            <a href="/admin/chat">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card inventory-header">
+            <div>
+                <p class="eyebrow">Quản lí kho</p>
+                <h1>Thêm, sửa, xóa hàng hóa</h1>
+                <p>Danh sách dưới đây giúp admin quản lí toàn bộ sản phẩm đang được bày bán.</p>
+            </div>
+            <div class="quick-links">
+                <a href="/admin/products/new">+ Thêm sản phẩm</a>
+                <a href="/products">Xem trang khách hàng</a>
+            </div>
+        </section>
+
+        <section class="inventory-table-wrap">
+            <table class="inventory-table" th:if="${!#lists.isEmpty(products)}">
+                <thead>
+                <tr>
+                    <th>Ảnh</th>
+                    <th>Tên áo</th>
+                    <th>Giá</th>
+                    <th>Giảm giá</th>
+                    <th>Tồn kho</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${products}">
+                    <td>
+                        <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" th:alt="${product.name}" class="thumb">
+                        <span th:if="${product.imageUrl == null}">Chưa có ảnh</span>
+                    </td>
+                    <td>
+                        <strong th:text="${product.name}">Tên áo</strong>
+                        <p th:text="${product.shortDescription}">Mô tả ngắn</p>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</td>
+                    <td>
+                        <span th:text="${product.discountPercent} + '%'">0%</span>
+                    </td>
+                    <td th:text="${product.quantity}">0</td>
+                    <td>
+                        <div class="inline-actions">
+                            <a th:href="@{'/products/' + ${product.id}}">Xem</a>
+                            <a th:href="@{'/admin/products/' + ${product.id} + '/edit'}">Sửa</a>
+                            <form th:action="@{'/admin/products/' + ${product.id} + '/delete'}" method="post">
+                                <button type="submit">Xóa</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="info-card" th:if="${#lists.isEmpty(products)}">
+                <p>Kho hiện chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên cho cửa hàng.</p>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

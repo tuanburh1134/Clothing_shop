@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name}">Chi tiết sản phẩm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+<div class="page-wrap">
+    <header class="top-bar">
+        <h1>Chi tiết sản phẩm</h1>
+        <div class="actions">
+            <a href="/products" class="action-link">← Quay lại</a>
+            <a sec:authorize="hasRole('ADMIN')" href="/admin/inventory" class="action-link">Quản lí kho</a>
+        </div>
+    </header>
+
+    <section class="detail-layout">
+        <div class="gallery-card">
+            <div class="gallery-stage">
+                <button type="button" class="gallery-nav prev">‹</button>
+                <img id="mainGalleryImage" th:src="${galleryImages[0]}" th:alt="${product.name}">
+                <button type="button" class="gallery-nav next">›</button>
+            </div>
+            <div class="gallery-thumbs">
+                <img th:each="image : ${galleryImages}" th:src="${image}" th:data-image="${image}" th:alt="${product.name}" class="gallery-thumb">
+            </div>
+        </div>
+
+        <div class="detail-info-card">
+            <p class="product-badge" th:if="${product.discountPercent > 0}" th:text="'-' + ${product.discountPercent} + '%'">-0%</p>
+            <h2 th:text="${product.name}">Tên sản phẩm</h2>
+            <p class="product-short-desc" th:text="${product.shortDescription}">Mô tả ngắn</p>
+            <p class="detail-price" th:if="${product.discountPercent > 0}">
+                <span class="old-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                <strong th:text="${#numbers.formatDecimal(product.discountedPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+            </p>
+            <p class="detail-price" th:if="${product.discountPercent == 0}">
+                <strong th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+            </p>
+
+            <p class="notice success" th:if="${param.cartAdded}">Đã thêm sản phẩm vào giỏ hàng.</p>
+            <p class="notice success" th:if="${param.buySuccess}">Đã tạo đơn hàng thành công.</p>
+
+            <div class="detail-description">
+                <h3>Mô tả chi tiết</h3>
+                <p th:text="${product.description}">Nội dung chi tiết sản phẩm.</p>
+            </div>
+
+            <div class="variant-box" th:if="${!#lists.isEmpty(product.variants)}">
+                <h3>Màu sắc và tồn kho</h3>
+                <div class="variant-item" th:each="variant : ${product.variants}">
+                    <strong th:text="${variant.color}">Màu</strong>
+                    <span th:text="'S: ' + ${variant.s} + ' | M: ' + ${variant.m} + ' | L: ' + ${variant.l} + ' | XL: ' + ${variant.xl} + ' | XXL: ' + ${variant.xxl}">Chi tiết size</span>
+                </div>
+            </div>
+
+            <div class="buy-actions">
+                <a class="action-link buy-now-btn" th:href="@{'/checkout/buy-now?productId=' + ${product.id}}">Mua ngay</a>
+                <form th:action="@{'/products/' + ${product.id} + '/cart'}" method="post" class="add-to-cart-form js-add-to-cart-form">
+                    <input type="hidden" name="redirectTo" th:value="@{'/products/' + ${product.id}}">
+                    <button type="submit" class="action-link">Thêm vào giỏ hàng</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+<script src="/js/product-detail.js"></script>
+</body>
+</html>

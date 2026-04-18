@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kênh chat</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory">Quản lí kho</a>
+            <a href="/admin/revenue">Thống kê doanh thu</a>
+            <a href="/admin/orders">Quản lí đơn hàng</a>
+            <a href="/admin/notifications">Thông báo</a>
+            <a href="/admin/chat" class="active">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Kênh chat</p>
+                <h1>Trang chat độc lập</h1>
+                <p>Menu chat đã tách thành trang riêng, không hiển thị chung với các khu vực khác.</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="info-card">
+                <p>Trang này đã tách riêng, có thể dùng để tích hợp chat chăm sóc khách hàng hoặc chat nội bộ.</p>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

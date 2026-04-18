@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory">Quản lí kho</a>
+            <a href="/admin/revenue">Thống kê doanh thu</a>
+            <a href="/admin/orders">Quản lí đơn hàng</a>
+            <a href="/admin/notifications" class="active">Thông báo</a>
+            <a href="/admin/chat">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Thông báo</p>
+                <h1>Thông báo dành cho quản trị viên</h1>
+                <p>Nhận cảnh báo đơn mới và các sự kiện liên quan tới vận hành cửa hàng.</p>
+            </div>
+        </section>
+
+        <section class="dashboard-section notification-board">
+            <article class="notification-card" th:each="notification : ${notifications}">
+                <div>
+                    <h3 th:text="${notification.title}">Tiêu đề thông báo</h3>
+                    <p th:text="${notification.message}">Nội dung thông báo</p>
+                    <small th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</small>
+                </div>
+                <a class="small-btn" th:if="${notification.linkUrl != null}" th:href="${notification.linkUrl}">Mở chi tiết</a>
+            </article>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(notifications)}">Chưa có thông báo nào cho admin.</p>
+        </section>
+    </main>
+</div>
+</body>
+</html>

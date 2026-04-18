@@ -1,2 +1,3 @@
 com\example\shop\util\ImageStorageUtil.class
+com\example\shop\dto\AccountProfileForm.class
 com\example\shop\config\WebResourceConfig.class

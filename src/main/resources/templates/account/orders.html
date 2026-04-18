@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/account.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+
+<main class="account-page-wrap">
+    <section class="account-layout">
+        <aside class="account-sidebar">
+            <h2>Khu vực tài khoản</h2>
+            <a class="account-tab" href="/account">Thông tin cá nhân</a>
+            <a class="account-tab active" href="/account/orders">Đơn hàng</a>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+                <button type="submit" class="logout-button">Đăng xuất</button>
+            </form>
+        </aside>
+
+        <section class="account-content">
+            <header class="account-content-head">
+                <h1>Đơn hàng của tôi</h1>
+                <a href="/account/orders" class="view-all-link">Xem tất cả &#8250;</a>
+            </header>
+
+            <p class="notice success" th:if="${param.ordered}">Bạn đã đặt hàng thành công. Đơn đang chờ admin duyệt.</p>
+
+            <div class="order-status-grid">
+                <article class="order-status-item">
+                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'PENDING'])}">0</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M5 4h14v11H5z"></path>
+                        <path d="M9 19h6"></path>
+                    </svg>
+                    <p>Chờ xác nhận</p>
+                </article>
+                <article class="order-status-item">
+                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'APPROVED'])}">0</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M6 4h12v14H6z"></path>
+                        <path d="M9 4v5h6V4"></path>
+                    </svg>
+                    <p>Chờ lấy hàng</p>
+                </article>
+                <article class="order-status-item">
+                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'APPROVED'])}">0</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M3 7h11v9H3z"></path>
+                        <path d="M14 10h4l3 3v3h-7z"></path>
+                        <circle cx="8" cy="18" r="1.5"></circle>
+                        <circle cx="18" cy="18" r="1.5"></circle>
+                    </svg>
+                    <p>Đang giao</p>
+                </article>
+                <article class="order-status-item">
+                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'CANCELED'])}">0</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M12 3.5l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"></path>
+                    </svg>
+                    <p>Đã hủy</p>
+                </article>
+            </div>
+
+            <section class="account-section">
+                <h2>Lịch sử đơn hàng</h2>
+                <div class="orders-list">
+                    <article class="order-card" th:each="order : ${orders}">
+                        <header>
+                            <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                            <span class="status-chip"
+                                  th:classappend="${order.status.name() == 'PENDING'} ? ' pending' : (${order.status.name() == 'APPROVED'} ? ' approved' : ' canceled')"
+                                  th:text="${order.status.name() == 'PENDING' ? 'Chờ duyệt' : (order.status.name() == 'APPROVED' ? 'Đã duyệt' : 'Đã hủy')}">Trạng thái</span>
+                        </header>
+                        <p>
+                            Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                        </p>
+                        <p>
+                            Địa chỉ giao: <strong th:text="${order.shippingAddress}">Địa chỉ</strong>
+                        </p>
+                        <div class="order-products">
+                            <p th:each="item : ${order.items}">
+                                <span th:text="${item.productName}">Sản phẩm</span>
+                                <strong th:text="'x' + ${item.quantity}">x1</strong>
+                            </p>
+                        </div>
+                        <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                        <p class="notice error" th:if="${order.status.name() == 'CANCELED' and order.cancelReason != null}">
+                            Lí do hủy: <span th:text="${order.cancelReason}">Lí do</span>
+                        </p>
+                    </article>
+                    <p class="empty-state" th:if="${#lists.isEmpty(orders)}">Bạn chưa có đơn hàng nào.</p>
+                </div>
+            </section>
+
+            <section class="account-section">
+                <h2>Thông báo của bạn</h2>
+                <div class="notifications-list">
+                    <article class="notification-line" th:each="notification : ${notifications}">
+                        <div>
+                            <strong th:text="${notification.title}">Tiêu đề</strong>
+                            <p th:text="${notification.message}">Nội dung</p>
+                            <small th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</small>
+                        </div>
+                        <a class="view-all-link" th:if="${notification.linkUrl != null}" th:href="${notification.linkUrl}">Mở</a>
+                    </article>
+                    <p class="empty-state" th:if="${#lists.isEmpty(notifications)}">Chưa có thông báo nào.</p>
+                </div>
+            </section>
+        </section>
+    </section>
+</main>
+</body>
+</html>

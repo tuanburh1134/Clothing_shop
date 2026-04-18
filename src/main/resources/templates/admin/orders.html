@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lí đơn hàng</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body class="with-background">
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div>
+            <h2>Quản lí</h2>
+            <p class="sidebar-subtitle">Tài khoản admin</p>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="/admin/dashboard">Tổng quan</a>
+            <a href="/admin/inventory">Quản lí kho</a>
+            <a href="/admin/revenue">Thống kê doanh thu</a>
+            <a href="/admin/orders" class="active">Quản lí đơn hàng</a>
+            <a href="/admin/notifications">Thông báo</a>
+            <a href="/admin/chat">Kênh chat</a>
+        </nav>
+
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="dashboard-content">
+        <section class="hero-card">
+            <div>
+                <p class="eyebrow">Đơn hàng</p>
+                <h1>Quản lí đơn hàng khách đặt</h1>
+                <p>Duyệt hoặc hủy đơn trực tiếp. Nếu hủy, cần nhập lí do để gửi lại cho khách hàng.</p>
+            </div>
+        </section>
+
+        <p class="notice success" th:if="${param.approved}">Đã duyệt đơn hàng thành công.</p>
+        <p class="notice success" th:if="${param.canceled}">Đã hủy đơn hàng và gửi thông báo cho khách.</p>
+
+        <section class="dashboard-section orders-board">
+            <article class="order-admin-card" th:each="order : ${orders}">
+                <header class="order-admin-head">
+                    <div>
+                        <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                        <p>
+                            Khách: <strong th:text="${order.username}">username</strong>
+                            | SĐT: <strong th:text="${order.customerPhone}">000000000</strong>
+                        </p>
+                        <p>
+                            Địa chỉ: <strong th:text="${order.shippingAddress}">Địa chỉ giao hàng</strong>
+                        </p>
+                        <p>
+                            Tạo lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                        </p>
+                    </div>
+                    <span class="status-chip"
+                          th:classappend="${order.status.name() == 'PENDING'} ? ' pending' : (${order.status.name() == 'APPROVED'} ? ' approved' : ' canceled')"
+                          th:text="${order.status.name() == 'PENDING' ? 'Chờ duyệt' : (order.status.name() == 'APPROVED' ? 'Đã duyệt' : 'Đã hủy')}">
+                        Chờ duyệt
+                    </span>
+                </header>
+
+                <div class="order-items-list">
+                    <article class="order-item-row" th:each="item : ${order.items}">
+                        <img class="thumb"
+                             th:if="${item.productImageUrl != null}"
+                             th:src="${item.productImageUrl}"
+                             th:alt="${item.productName}">
+                        <div class="thumb" th:if="${item.productImageUrl == null}"></div>
+                        <div>
+                            <p class="order-item-name" th:text="${item.productName}">Tên sản phẩm</p>
+                            <p th:text="'SL: ' + ${item.quantity} + ' | Giá: ' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">Chi tiết</p>
+                        </div>
+                        <strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+                    </article>
+                </div>
+
+                <p class="order-total">Tổng đơn: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                <p class="notice error" th:if="${order.status.name() == 'CANCELED' and order.cancelReason != null}">
+                    Lí do hủy: <span th:text="${order.cancelReason}">Lí do</span>
+                </p>
+
+                <div class="inline-actions" th:if="${order.status.name() == 'PENDING'}">
+                    <form th:action="@{'/admin/orders/' + ${order.id} + '/approve'}" method="post">
+                        <button type="submit">Duyệt đơn</button>
+                    </form>
+                    <form th:action="@{'/admin/orders/' + ${order.id} + '/cancel'}" method="post" class="cancel-order-form">
+                        <input type="text" name="cancelReason" placeholder="Nhập lí do hủy" required>
+                        <button type="submit">Hủy đơn</button>
+                    </form>
+                </div>
+            </article>
+
+            <p class="empty-state" th:if="${#lists.isEmpty(orders)}">Hiện chưa có đơn hàng nào.</p>
+        </section>
+    </main>
+</div>
+</body>
+</html>

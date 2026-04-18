@@ -1,4 +1,143 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 24px;
+.home-page {
+    padding: 16px 12px 22px;
+}
+
+.products-page {
+    padding-top: 0;
+}
+
+.ad-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 1500px;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 16px 30px rgba(8, 28, 46, 0.18);
+    background: transparent;
+}
+
+.ad-carousel-full {
+    width: 100vw;
+    max-width: none;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border-radius: 0;
+}
+
+.ad-carousel-track {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.ad-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+}
+
+.ad-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ad-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: transparent;
+    display: block;
+}
+
+.ad-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(15, 34, 61, 0.34);
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.ad-control:hover {
+    background: rgba(15, 34, 61, 0.56);
+}
+
+.ad-control.prev {
+    left: 12px;
+}
+
+.ad-control.next {
+    right: 12px;
+}
+
+.ad-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 2;
+}
+
+.ad-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    padding: 0;
+}
+
+.ad-dot.is-active {
+    width: 28px;
+    background: #ffffff;
+}
+
+@media (max-width: 700px) {
+    .home-page {
+        padding: 10px 8px 18px;
+    }
+
+    .products-page {
+        padding-top: 0;
+    }
+
+    .ad-carousel {
+        border-radius: 10px;
+    }
+
+    .ad-carousel-full {
+        border-radius: 0;
+    }
+
+    .ad-control {
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+    }
+
+    .ad-control.prev {
+        left: 8px;
+    }
+
+    .ad-control.next {
+        right: 8px;
+    }
+
+    .ad-carousel-track {
+        aspect-ratio: 16 / 9;
+    }
 }

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận đặt hàng</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+<div class="page-wrap">
+    <header class="top-bar">
+        <h1>Xác nhận đặt hàng</h1>
+        <div class="actions">
+            <a href="/cart" class="action-link">Quay lại giỏ hàng</a>
+        </div>
+    </header>
+
+    <p class="notice error" th:if="${param.addressError}">Vui lòng nhập địa chỉ giao hàng.</p>
+    <p class="notice error" th:if="${param.phoneError}">Vui lòng nhập số điện thoại.</p>
+
+    <form th:action="@{/checkout/confirm}" method="post" class="checkout-layout">
+        <section class="checkout-address-card">
+            <label>
+                Địa chỉ giao hàng
+                <textarea id="shippingAddressField" name="shippingAddress" rows="4" placeholder="Nhập địa chỉ nhận hàng" required></textarea>
+            </label>
+            <label>
+                Số điện thoại nhận hàng
+                <input id="phoneNumberField" type="text" name="phoneNumber" placeholder="Nhập số điện thoại" required>
+            </label>
+            <button type="button"
+                    id="fillCurrentAddressBtn"
+                    class="action-link secondary"
+                    th:data-profile-address="${accountUser.address}"
+                    th:data-profile-phone="${accountUser.phoneNumber}">
+                Chọn địa chỉ hiện tại
+            </button>
+        </section>
+
+        <section class="checkout-items-card">
+            <div class="checkout-items-scroll">
+                <article class="checkout-item" th:each="item : ${checkoutItems}">
+                    <div class="checkout-item-image">
+                        <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" th:alt="${item.productName}">
+                        <div th:if="${item.imageUrl == null}" class="product-image-placeholder">No Image</div>
+                    </div>
+                    <div class="checkout-item-info">
+                        <h3 th:text="${item.productName}">Tên sản phẩm</h3>
+                        <p>Số lượng: <strong th:text="${item.quantity}">1</strong></p>
+                        <p>Đơn giá: <strong th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                        <p>Giá: <strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                    </div>
+                </article>
+            </div>
+
+            <div class="checkout-bottom-bar">
+                <p>Tổng hóa đơn: <strong th:text="${#numbers.formatDecimal(checkoutTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                <button type="submit" class="action-link">Xác nhận đặt hàng</button>
+            </div>
+        </section>
+    </form>
+</div>
+<script src="/js/checkout.js"></script>
+</body>
+</html>

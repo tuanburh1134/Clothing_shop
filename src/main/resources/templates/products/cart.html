@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+<div class="page-wrap">
+    <header class="top-bar">
+        <h1>Giỏ hàng của bạn</h1>
+        <div class="actions">
+            <a href="/products" class="action-link">Tiếp tục mua sắm</a>
+        </div>
+    </header>
+
+    <p class="notice success" th:if="${param.orderPlaced}">Đơn hàng của bạn đã sẽ được duyệt trong thời gian sớm nhất.</p>
+    <p class="notice error" th:if="${param.checkoutError}">Vui lòng chọn ít nhất một sản phẩm để mua.</p>
+
+    <form th:if="${!#lists.isEmpty(cartItems)}" th:action="@{/checkout/cart}" method="post" class="cart-checkout-form">
+        <section class="cart-grid">
+            <article class="cart-item" th:each="item : ${cartItems}">
+                <label class="cart-tick-wrap">
+                    <input type="checkbox" name="selectedProductIds" th:value="${item.productId}" class="cart-item-check">
+                    <span class="tick-ui">✓</span>
+                </label>
+
+                <a class="cart-item-image" th:href="@{'/products/' + ${item.productId}}">
+                    <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" th:alt="${item.name}">
+                    <div th:if="${item.imageUrl == null}" class="product-image-placeholder">No Image</div>
+                </a>
+
+                <div class="cart-item-info">
+                    <h3 th:text="${item.name}">Tên sản phẩm</h3>
+                    <p th:text="${item.shortDescription} ?: '...'">Mô tả ngắn</p>
+                    <p>Số lượng: <strong th:text="${item.quantity}">1</strong></p>
+                    <p>Đơn giá: <strong th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                    <p>Tạm tính: <strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                </div>
+            </article>
+        </section>
+
+        <section class="cart-summary">
+            <div>
+                <p>Tổng toàn giỏ:</p>
+                <strong th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+            </div>
+            <button type="submit" class="action-link">Tiếp tục mua các sản phẩm đã tick</button>
+        </section>
+    </form>
+
+    <p th:if="${#lists.isEmpty(cartItems)}" class="empty-state">Giỏ hàng chưa có sản phẩm nào.</p>
+</div>
+</body>
+</html>

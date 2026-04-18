@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'Tất cả sản phẩm'">Tất cả sản phẩm</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/products.css">
+</head>
+<body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
+<div class="page-wrap products-page">
+    <header class="top-bar">
+        <h1 th:text="${pageTitle} ?: 'Tất cả sản phẩm (mới nhất -> cũ nhất)'">Tất cả sản phẩm (mới nhất -> cũ nhất)</h1>
+        <div class="actions">
+            <a href="/products" class="action-link">Quay lại trang sản phẩm</a>
+        </div>
+    </header>
+
+    <section class="product-grid">
+        <article class="product-card" th:each="product : ${products}">
+            <a class="product-image-wrap" th:href="@{'/products/' + ${product.id}}">
+                <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" th:alt="${product.name}">
+                <div th:if="${product.imageUrl == null}" class="product-image-placeholder">No Image</div>
+                <span class="discount-tag" th:if="${product.discountPercent > 0}" th:text="'-' + ${product.discountPercent} + '%'">-0%</span>
+            </a>
+            <div class="product-info">
+                <h3>
+                    <a class="product-title-link" th:text="${product.name}" th:href="@{'/products/' + ${product.id}}">Tên sản phẩm</a>
+                </h3>
+                <p class="product-category" th:text="${product.category != null ? product.category.label : 'Chưa phân loại'}">Danh mục</p>
+                <p class="short-desc" th:text="${product.shortDescription}">Mô tả ngắn</p>
+                <p th:if="${product.discountPercent > 0}">
+                    Giá: <span class="old-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                    <strong th:text="${#numbers.formatDecimal(product.discountedPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+                </p>
+                <p th:if="${product.discountPercent == 0}">
+                    Giá: <strong th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+                </p>
+                <p>Tồn kho: <span th:text="${product.quantity}">0</span></p>
+                <a class="detail-link" th:href="@{'/products/' + ${product.id}}">Xem chi tiết</a>
+            </div>
+        </article>
+    </section>
+
+    <p class="empty-state" th:if="${#lists.isEmpty(products)}">Chưa có sản phẩm nào.</p>
+</div>
+</body>
+</html>

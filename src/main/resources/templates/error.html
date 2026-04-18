@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/common.css">
 </head>
 <body class="with-background">
+<div th:replace="~{fragments/site-header :: siteHeader}"></div>
 <div class="error-box">
     <h1>Đã xảy ra lỗi</h1>
     <p th:text="${errorMessage}">Có lỗi xảy ra. Vui lòng thử lại sau.</p>

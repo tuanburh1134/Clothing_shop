@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 @Configuration
 @EnableWebSecurity
@@ -36,7 +39,22 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/auth")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/products", true)
+                        .successHandler((request, response, authentication) -> {
+                            RequestCache requestCache = new HttpSessionRequestCache();
+                            SavedRequest savedRequest = requestCache.getRequest(request, response);
+
+                            if (savedRequest != null) {
+                                String targetUrl = savedRequest.getRedirectUrl();
+                                requestCache.removeRequest(request, response);
+                                response.sendRedirect(targetUrl);
+                                return;
+                            }
+
+                            boolean isAdmin = authentication.getAuthorities().stream()
+                                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+                            response.sendRedirect(isAdmin ? "/admin/dashboard" : "/products");
+                        })
                         .failureUrl("/auth?error")
                         .permitAll()
                 )

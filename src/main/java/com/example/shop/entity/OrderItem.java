@@ -33,6 +33,12 @@ public class OrderItem {
     @Column(name = "product_image_url", length = 255)
     private String productImageUrl;
 
+    @Column(name = "selected_color", length = 80)
+    private String selectedColor;
+
+    @Column(name = "selected_size", length = 12)
+    private String selectedSize;
+
     @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal unitPrice;
 
@@ -76,6 +82,22 @@ public class OrderItem {
 
     public void setProductImageUrl(String productImageUrl) {
         this.productImageUrl = productImageUrl;
+    }
+
+    public String getSelectedColor() {
+        return selectedColor;
+    }
+
+    public void setSelectedColor(String selectedColor) {
+        this.selectedColor = selectedColor;
+    }
+
+    public String getSelectedSize() {
+        return selectedSize;
+    }
+
+    public void setSelectedSize(String selectedSize) {
+        this.selectedSize = selectedSize;
     }
 
     public BigDecimal getUnitPrice() {

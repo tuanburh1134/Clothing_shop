@@ -84,6 +84,7 @@
                         <div class="order-products">
                             <p th:each="item : ${order.items}">
                                 <span th:text="${item.productName}">Sản phẩm</span>
+                                <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
                                 <strong th:text="'x' + ${item.quantity}">x1</strong>
                             </p>
                         </div>

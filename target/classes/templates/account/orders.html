@@ -28,85 +28,230 @@
             </header>
 
             <p class="notice success" th:if="${param.ordered}">Bạn đã đặt hàng thành công. Đơn đang chờ admin duyệt.</p>
+            <p class="notice success" th:if="${orderActionSuccess}" th:text="${orderActionSuccess}"></p>
+            <p class="notice error" th:if="${orderActionError}" th:text="${orderActionError}"></p>
 
             <div class="order-status-grid">
-                <article class="order-status-item">
-                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'PENDING'])}">0</span>
+                <button type="button" class="order-status-item is-active" data-order-tab="pending">
+                    <span class="order-badge" th:text="${#lists.size(pendingOrders)}">0</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M5 4h14v11H5z"></path>
                         <path d="M9 19h6"></path>
                     </svg>
                     <p>Chờ xác nhận</p>
-                </article>
-                <article class="order-status-item">
-                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'APPROVED'])}">0</span>
+                </button>
+                <button type="button" class="order-status-item" data-order-tab="approved">
+                    <span class="order-badge" th:text="${#lists.size(approvedOrders)}">0</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M6 4h12v14H6z"></path>
                         <path d="M9 4v5h6V4"></path>
                     </svg>
                     <p>Chờ lấy hàng</p>
-                </article>
-                <article class="order-status-item">
-                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'APPROVED'])}">0</span>
+                </button>
+                <button type="button" class="order-status-item" data-order-tab="delivered">
+                    <span class="order-badge" th:text="${#lists.size(deliveredOrders)}">0</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M3 7h11v9H3z"></path>
                         <path d="M14 10h4l3 3v3h-7z"></path>
                         <circle cx="8" cy="18" r="1.5"></circle>
                         <circle cx="18" cy="18" r="1.5"></circle>
                     </svg>
-                    <p>Đang giao</p>
-                </article>
-                <article class="order-status-item">
-                    <span class="order-badge" th:text="${#lists.size(orders.?[status.name() == 'CANCELED'])}">0</span>
+                    <p>Đã giao</p>
+                </button>
+                <button type="button" class="order-status-item" data-order-tab="canceled">
+                    <span class="order-badge" th:text="${#lists.size(canceledOrders)}">0</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <path d="M12 3.5l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"></path>
                     </svg>
                     <p>Đã hủy</p>
-                </article>
+                </button>
             </div>
 
-            <section class="account-section">
-                <h2>Lịch sử đơn hàng</h2>
-                <div class="orders-list">
-                    <article class="order-card" th:each="order : ${orders}">
-                        <header>
-                            <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
-                            <span class="status-chip"
-                                  th:classappend="${order.status.name() == 'PENDING'} ? ' pending' : (${order.status.name() == 'APPROVED'} ? ' approved' : ' canceled')"
-                                  th:text="${order.status.name() == 'PENDING' ? 'Chờ duyệt' : (order.status.name() == 'APPROVED' ? 'Đã duyệt' : 'Đã hủy')}">Trạng thái</span>
-                        </header>
-                        <p>
-                            Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
-                        </p>
-                        <p>
-                            Địa chỉ giao: <strong th:text="${order.shippingAddress}">Địa chỉ</strong>
-                        </p>
-                        <div class="order-products">
-                            <p th:each="item : ${order.items}">
-                                <span th:text="${item.productName}">Sản phẩm</span>
-                                <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
-                                <strong th:text="'x' + ${item.quantity}">x1</strong>
+            <section class="account-section order-tab-content">
+                <div class="order-panel" data-order-panel="pending">
+                    <h2>Đơn hàng chờ xác nhận</h2>
+                    <p class="panel-note">Đây là các đơn bạn vừa đặt và chưa được admin xác nhận. Bạn có thể hủy đơn tại đây.</p>
+                    <div class="orders-list">
+                        <article class="order-card js-expandable-order" th:each="order : ${pendingOrders}">
+                            <header>
+                                <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                                <span class="status-chip pending">Chờ duyệt</span>
+                            </header>
+                            <p>
+                                Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
                             </p>
-                        </div>
-                        <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
-                        <p class="notice error" th:if="${order.status.name() == 'CANCELED' and order.cancelReason != null}">
-                            Lí do hủy: <span th:text="${order.cancelReason}">Lí do</span>
-                        </p>
-                    </article>
-                    <p class="empty-state" th:if="${#lists.isEmpty(orders)}">Bạn chưa có đơn hàng nào.</p>
+                            <p>
+                                Địa chỉ giao: <strong th:text="${order.shippingAddress}">Địa chỉ</strong>
+                            </p>
+                            <div class="order-products">
+                                <p th:each="item : ${order.items}">
+                                    <span th:text="${item.productName}">Sản phẩm</span>
+                                    <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
+                                    <strong th:text="'x' + ${item.quantity}">x1</strong>
+                                </p>
+                            </div>
+                            <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+
+                            <div class="order-action-wrap">
+                                <button type="button" class="secondary-action-btn js-open-cancel-modal">Hủy đơn</button>
+
+                                <div class="cancel-modal js-cancel-modal" hidden>
+                                    <div class="cancel-modal-backdrop js-close-cancel-modal"></div>
+                                    <div class="cancel-modal-dialog" role="dialog" aria-modal="true" aria-label="Xác nhận hủy đơn">
+                                        <form th:action="@{'/account/orders/' + ${order.id} + '/cancel'}" method="post" class="cancel-box">
+                                            <p>Bạn có chắc muốn hủy đơn này không?</p>
+                                            <input type="text" name="cancelReason" placeholder="Nhập lí do hủy" required>
+                                            <div class="inline-btns">
+                                                <button type="submit" class="danger-action-btn">Xác nhận hủy</button>
+                                                <button type="button" class="secondary-action-btn js-close-cancel-modal">Đóng</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        <p class="empty-state" th:if="${#lists.isEmpty(pendingOrders)}">Bạn không có đơn nào đang chờ xác nhận.</p>
+                    </div>
+                </div>
+
+                <div class="order-panel" data-order-panel="approved" hidden>
+                    <h2>Đơn hàng chờ lấy hàng</h2>
+                    <p class="panel-note">Đây là các đơn đã được admin xác nhận. Chỉ bấm xác nhận khi bạn đã nhận được hàng.</p>
+                    <div class="orders-list">
+                        <article class="order-card js-expandable-order" th:each="order : ${approvedOrders}">
+                            <header>
+                                <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                                <span class="status-chip approved">Đã duyệt</span>
+                            </header>
+                            <p>
+                                Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                            </p>
+                            <p>
+                                Địa chỉ giao: <strong th:text="${order.shippingAddress}">Địa chỉ</strong>
+                            </p>
+                            <div class="order-products">
+                                <p th:each="item : ${order.items}">
+                                    <span th:text="${item.productName}">Sản phẩm</span>
+                                    <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
+                                    <strong th:text="'x' + ${item.quantity}">x1</strong>
+                                </p>
+                            </div>
+                            <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                            <form th:action="@{'/account/orders/' + ${order.id} + '/received'}" method="post" class="confirm-received-form">
+                                <button type="submit" class="primary-action-btn">Đã nhận được hàng</button>
+                            </form>
+                        </article>
+                        <p class="empty-state" th:if="${#lists.isEmpty(approvedOrders)}">Bạn không có đơn nào ở mục chờ lấy hàng.</p>
+                    </div>
+                </div>
+
+                <div class="order-panel" data-order-panel="delivered" hidden>
+                    <h2>Đơn hàng đã giao</h2>
+                    <p class="panel-note">Bạn có thể đánh giá sản phẩm (1-5 sao), thêm ảnh và bình luận cho từng sản phẩm đã nhận.</p>
+                    <div class="orders-list">
+                        <article class="order-card js-expandable-order" th:each="order : ${deliveredOrders}">
+                            <header>
+                                <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                                <span class="status-chip delivered">Đã giao</span>
+                            </header>
+                            <p>
+                                Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                            </p>
+                            <div class="order-products delivered-products">
+                                <div class="delivered-item" th:each="item : ${order.items}">
+                                    <div class="delivered-item-head">
+                                        <p>
+                                            <span th:text="${item.productName}">Sản phẩm</span>
+                                            <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
+                                            <strong th:text="'x' + ${item.quantity}">x1</strong>
+                                        </p>
+                                        <a th:href="@{'/products/' + ${item.productId}}" class="view-all-link">Xem sản phẩm</a>
+                                    </div>
+
+                                    <p class="notice success" th:if="${reviewedOrderItemIds.contains(item.id)}">Bạn đã đánh giá sản phẩm này.</p>
+
+                                    <form th:if="${!reviewedOrderItemIds.contains(item.id)}"
+                                          th:action="@{'/account/orders/' + ${order.id} + '/review'}"
+                                          method="post"
+                                          enctype="multipart/form-data"
+                                          class="review-form">
+                                        <input type="hidden" name="orderItemId" th:value="${item.id}">
+                                        <input type="hidden" name="productId" th:value="${item.productId}">
+
+                                        <label>
+                                            Số sao
+                                            <input type="hidden" name="rating" class="js-rating-input" value="5" required>
+                                            <div class="rating-stars js-rating-stars" role="radiogroup" aria-label="Đánh giá sao">
+                                                <button type="button" class="rating-star is-active" data-rating-value="1" aria-label="1 sao">★</button>
+                                                <button type="button" class="rating-star is-active" data-rating-value="2" aria-label="2 sao">★</button>
+                                                <button type="button" class="rating-star is-active" data-rating-value="3" aria-label="3 sao">★</button>
+                                                <button type="button" class="rating-star is-active" data-rating-value="4" aria-label="4 sao">★</button>
+                                                <button type="button" class="rating-star is-active" data-rating-value="5" aria-label="5 sao">★</button>
+                                            </div>
+                                        </label>
+
+                                        <label>
+                                            Bình luận
+                                            <textarea name="comment" rows="3" placeholder="Chia sẻ cảm nhận của bạn" required></textarea>
+                                        </label>
+
+                                        <label>
+                                            Ảnh đánh giá (không bắt buộc)
+                                            <input type="file" name="reviewImages" accept=".jpg,.jpeg,.png,.webp" multiple>
+                                        </label>
+
+                                        <button type="submit" class="primary-action-btn">Gửi đánh giá</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                        </article>
+                        <p class="empty-state" th:if="${#lists.isEmpty(deliveredOrders)}">Bạn chưa có đơn nào ở mục đã giao.</p>
+                    </div>
+                </div>
+
+                <div class="order-panel" data-order-panel="canceled" hidden>
+                    <h2>Đơn hàng đã hủy</h2>
+                    <div class="orders-list">
+                        <article class="order-card js-expandable-order" th:each="order : ${canceledOrders}">
+                            <header>
+                                <h3 th:text="'Đơn #' + ${order.id}">Đơn #0</h3>
+                                <span class="status-chip canceled">Đã hủy</span>
+                            </header>
+                            <p>
+                                Đặt lúc: <strong th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                            </p>
+                            <p>
+                                Địa chỉ giao: <strong th:text="${order.shippingAddress}">Địa chỉ</strong>
+                            </p>
+                            <div class="order-products">
+                                <p th:each="item : ${order.items}">
+                                    <span th:text="${item.productName}">Sản phẩm</span>
+                                    <em th:text="'(' + ${item.selectedColor} + ' / ' + ${item.selectedSize} + ')'">(Màu / Size)</em>
+                                    <strong th:text="'x' + ${item.quantity}">x1</strong>
+                                </p>
+                            </div>
+                            <p>Tổng tiền: <strong th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong></p>
+                            <p class="notice error" th:if="${order.cancelReason != null}">
+                                Lí do hủy: <span th:text="${order.cancelReason}">Lí do</span>
+                            </p>
+                        </article>
+                        <p class="empty-state" th:if="${#lists.isEmpty(canceledOrders)}">Bạn chưa có đơn nào đã hủy.</p>
+                    </div>
                 </div>
             </section>
 
             <section class="account-section">
                 <h2>Thông báo của bạn</h2>
                 <div class="notifications-list">
-                    <article class="notification-line" th:each="notification : ${notifications}">
+                    <article class="notification-line js-notification-card"
+                             th:each="notification : ${notifications}"
+                             th:attr="data-href=${notification.linkUrl},tabindex=${notification.linkUrl != null ? '0' : null}">
                         <div>
                             <strong th:text="${notification.title}">Tiêu đề</strong>
                             <p th:text="${notification.message}">Nội dung</p>
                             <small th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</small>
                         </div>
-                        <a class="view-all-link" th:if="${notification.linkUrl != null}" th:href="${notification.linkUrl}">Mở</a>
                     </article>
                     <p class="empty-state" th:if="${#lists.isEmpty(notifications)}">Chưa có thông báo nào.</p>
                 </div>
@@ -114,5 +259,7 @@
         </section>
     </section>
 </main>
+<div th:replace="~{fragments/site-footer :: siteFooter}"></div>
+<script src="/js/account-orders.js"></script>
 </body>
 </html>

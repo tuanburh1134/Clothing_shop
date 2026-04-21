@@ -18,10 +18,10 @@
         <nav class="sidebar-menu">
             <a href="/admin/dashboard" class="active">Tổng quan</a>
             <a href="/admin/inventory">Quản lí kho</a>
-            <a href="/admin/revenue">Thống kê doanh thu</a>
             <a href="/admin/orders">Quản lí đơn hàng</a>
             <a href="/admin/notifications">Thông báo</a>
             <a href="/admin/chat">Kênh chat</a>
+            <a href="/products">Chuyển sang trang khách hàng</a>
         </nav>
 
         <form th:action="@{/logout}" method="post" class="logout-form">
@@ -34,48 +34,154 @@
             <div>
                 <p class="eyebrow">Bảng điều khiển</p>
                 <h1>Trang quản lí dành cho admin</h1>
-                <p>Mỗi nút bên trái sẽ mở ra một trang riêng thay vì dồn tất cả nội dung trên cùng một màn hình.</p>
+                <p>Theo dõi nhanh số liệu tồn kho, số lượng đã bán và doanh thu trong 6 tháng gần nhất.</p>
             </div>
         </section>
 
         <section class="stats-grid dashboard-section">
             <article class="stat-card">
-                <span>Tổng sản phẩm</span>
-                <strong th:text="${productCount}">0</strong>
-            </article>
-            <article class="stat-card">
-                <span>Sản phẩm sắp hết</span>
-                <strong th:text="${lowStockCount}">0</strong>
-            </article>
-            <article class="stat-card">
                 <span>Tổng tồn kho</span>
                 <strong th:text="${totalQuantity}">0</strong>
             </article>
+            <article class="stat-card">
+                <span>Doanh thu <span th:text="${periodLabel}">tháng</span></span>
+                <strong th:text="${#numbers.formatDecimal(periodRevenue, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</strong>
+            </article>
+            <article class="stat-card">
+                <span>
+                    Đã bán
+                    <span class="period-switcher">
+                        <a th:href="@{/admin/dashboard(period='day')}" th:classappend="${period == 'day'} ? 'active' : ''">Ngày</a>
+                        <a th:href="@{/admin/dashboard(period='month')}" th:classappend="${period == 'month'} ? 'active' : ''">Tháng</a>
+                        <a th:href="@{/admin/dashboard(period='year')}" th:classappend="${period == 'year'} ? 'active' : ''">Năm</a>
+                    </span>
+                </span>
+                <strong th:text="${soldUnits}">0</strong>
+            </article>
         </section>
 
-        <section class="dashboard-links">
-            <a href="/admin/inventory" class="nav-card">
-                <h3>Quản lí kho</h3>
-                <p>Thêm, sửa, xóa hàng hóa và quản lí màu sắc, size, tồn kho.</p>
-            </a>
-            <a href="/admin/revenue" class="nav-card">
-                <h3>Thống kê doanh thu</h3>
-                <p>Theo dõi báo cáo bán hàng theo từng giai đoạn.</p>
-            </a>
-            <a href="/admin/orders" class="nav-card">
-                <h3>Quản lí đơn hàng</h3>
-                <p>Xem và xử lí các đơn hàng của khách.</p>
-            </a>
-            <a href="/admin/notifications" class="nav-card">
-                <h3>Thông báo</h3>
-                <p>Nhận cảnh báo và cập nhật hoạt động cửa hàng.</p>
-            </a>
-            <a href="/admin/chat" class="nav-card">
-                <h3>Kênh chat</h3>
-                <p>Khu vực trao đổi và hỗ trợ nhanh.</p>
-            </a>
+        <section class="info-card dashboard-section chart-card">
+            <div class="chart-card-head">
+                <h2>Biểu đồ doanh thu 6 tháng gần nhất</h2>
+            </div>
+            <div class="revenue-chart-wrap">
+                <svg id="revenueChart" class="revenue-chart" viewBox="0 0 760 280" preserveAspectRatio="none" aria-label="Biểu đồ doanh thu"></svg>
+                <div class="revenue-labels" id="revenueLabels"></div>
+                <div id="chartTooltip" class="chart-tooltip" aria-hidden="true"></div>
+            </div>
         </section>
     </main>
 </div>
+<script th:inline="javascript">
+    (function () {
+        const labels = /*[[${revenueLabels}]]*/ [];
+        const valuesRaw = /*[[${revenueValues}]]*/ [];
+
+        const values = valuesRaw.map(function (value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : 0;
+        });
+
+        const svg = document.getElementById('revenueChart');
+        const labelsWrap = document.getElementById('revenueLabels');
+        const tooltip = document.getElementById('chartTooltip');
+        if (!svg || !labelsWrap || !tooltip || labels.length === 0 || values.length === 0) {
+            return;
+        }
+
+        const width = 760;
+        const height = 280;
+        const padLeft = 44;
+        const padRight = 18;
+        const padTop = 18;
+        const padBottom = 40;
+
+        const maxValue = Math.max.apply(null, values);
+        const safeMax = maxValue <= 0 ? 1 : maxValue;
+        const chartWidth = width - padLeft - padRight;
+        const chartHeight = height - padTop - padBottom;
+        const xStep = labels.length > 1 ? chartWidth / (labels.length - 1) : 0;
+
+        const points = values.map(function (value, index) {
+            const x = padLeft + xStep * index;
+            const y = padTop + (1 - (value / safeMax)) * chartHeight;
+            return { x: x, y: y, value: value };
+        });
+
+        const formatCurrency = function (value) {
+            return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+        };
+
+        const linePath = points.reduce(function (path, point, index) {
+            if (index === 0) {
+                return 'M ' + point.x + ' ' + point.y;
+            }
+
+            const prev = points[index - 1];
+            const controlX = (prev.x + point.x) / 2;
+            return path + ' Q ' + controlX + ' ' + prev.y + ' ' + point.x + ' ' + point.y;
+        }, '');
+
+        const areaPath = linePath
+            + ' L ' + points[points.length - 1].x + ' ' + (height - padBottom)
+            + ' L ' + points[0].x + ' ' + (height - padBottom)
+            + ' Z';
+
+        const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        area.setAttribute('d', areaPath);
+        area.setAttribute('fill', 'rgba(15, 92, 99, 0.16)');
+        svg.appendChild(area);
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        line.setAttribute('d', linePath);
+        line.setAttribute('fill', 'none');
+        line.setAttribute('stroke', '#0f5c63');
+        line.setAttribute('stroke-width', '3');
+        line.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(line);
+
+        const showTooltip = function (index) {
+            const point = points[index];
+            tooltip.textContent = labels[index] + ': ' + formatCurrency(point.value);
+            tooltip.style.left = point.x + 'px';
+            tooltip.style.top = (point.y - 12) + 'px';
+            tooltip.classList.add('visible');
+        };
+
+        const hideTooltip = function () {
+            tooltip.classList.remove('visible');
+        };
+
+        points.forEach(function (point, index) {
+            const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            dot.setAttribute('cx', String(point.x));
+            dot.setAttribute('cy', String(point.y));
+            dot.setAttribute('r', '4.5');
+            dot.setAttribute('fill', '#0f5c63');
+            svg.appendChild(dot);
+
+            const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            hit.setAttribute('cx', String(point.x));
+            hit.setAttribute('cy', String(point.y));
+            hit.setAttribute('r', '14');
+            hit.setAttribute('fill', 'transparent');
+            hit.addEventListener('mouseenter', function () { showTooltip(index); });
+            hit.addEventListener('mouseleave', hideTooltip);
+            svg.appendChild(hit);
+        });
+
+        labelsWrap.innerHTML = labels.map(function (label, index) {
+            return '<span data-index="' + index + '">' + label + '</span>';
+        }).join('');
+
+        labelsWrap.querySelectorAll('span').forEach(function (el) {
+            const idx = Number(el.getAttribute('data-index'));
+            el.addEventListener('mouseenter', function () { showTooltip(idx); });
+            el.addEventListener('mouseleave', hideTooltip);
+        });
+
+        svg.addEventListener('mouseleave', hideTooltip);
+    })();
+</script>
 </body>
 </html>

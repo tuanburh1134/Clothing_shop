@@ -18,10 +18,10 @@
         <nav class="sidebar-menu">
             <a href="/admin/dashboard">Tổng quan</a>
             <a href="/admin/inventory">Quản lí kho</a>
-            <a href="/admin/revenue">Thống kê doanh thu</a>
             <a href="/admin/orders" class="active">Quản lí đơn hàng</a>
             <a href="/admin/notifications">Thông báo</a>
             <a href="/admin/chat">Kênh chat</a>
+            <a href="/products">Chuyển sang trang khách hàng</a>
         </nav>
 
         <form th:action="@{/logout}" method="post" class="logout-form">
@@ -58,8 +58,8 @@
                         </p>
                     </div>
                     <span class="status-chip"
-                          th:classappend="${order.status.name() == 'PENDING'} ? ' pending' : (${order.status.name() == 'APPROVED'} ? ' approved' : ' canceled')"
-                          th:text="${order.status.name() == 'PENDING' ? 'Chờ duyệt' : (order.status.name() == 'APPROVED' ? 'Đã duyệt' : 'Đã hủy')}">
+                          th:classappend="${order.status.name() == 'PENDING'} ? ' pending' : (${order.status.name() == 'APPROVED'} ? ' approved' : (${order.status.name() == 'DELIVERED'} ? ' delivered' : ' canceled'))"
+                          th:text="${order.status.name() == 'PENDING' ? 'Chờ duyệt' : (order.status.name() == 'APPROVED' ? 'Đã duyệt' : (order.status.name() == 'DELIVERED' ? 'Đã giao' : 'Đã hủy'))}">
                         Chờ duyệt
                     </span>
                 </header>

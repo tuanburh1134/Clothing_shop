@@ -18,10 +18,10 @@
         <nav class="sidebar-menu">
             <a href="/admin/dashboard" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">Tổng quan</a>
             <a href="/admin/inventory" th:classappend="${activePage == 'inventory'} ? 'active' : ''">Quản lí kho</a>
-            <a href="/admin/revenue" th:classappend="${activePage == 'revenue'} ? 'active' : ''">Thống kê doanh thu</a>
             <a href="/admin/orders" th:classappend="${activePage == 'orders'} ? 'active' : ''">Quản lí đơn hàng</a>
             <a href="/admin/notifications" th:classappend="${activePage == 'notifications'} ? 'active' : ''">Thông báo</a>
             <a href="/admin/chat" th:classappend="${activePage == 'chat'} ? 'active' : ''">Kênh chat</a>
+            <a href="/products">Chuyển sang trang khách hàng</a>
         </nav>
 
         <form th:action="@{/logout}" method="post" class="logout-form">

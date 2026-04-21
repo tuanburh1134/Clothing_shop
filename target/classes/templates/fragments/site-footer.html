@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="siteFooter">
+    <footer class="site-footer">
+        <section class="site-footer-main">
+            <div class="site-footer-brand">
+                <img src="/images/logo.png" alt="Thời trang trẻ" class="site-footer-logo">
+            </div>
+
+            <div class="site-footer-grid">
+                <article class="site-footer-col">
+                    <h3>CONTACT US</h3>
+                    <p class="site-footer-sub">(LIÊN HỆ)</p>
+                    <p><strong>ADDRESS:</strong><br>123 Phố Láng Hạ, Đống Đa,<br>Hà Nội, Việt Nam</p>
+                    <p><strong>PHONE:</strong><br>+84 912 345 678</p>
+                    <p><strong>EMAIL:</strong><br>support@thoitrangtre.vn</p>
+                    <p><strong>HOURS:</strong><br>Mon-Sat: 9am-8pm<br>Sun: Closed</p>
+                </article>
+
+                <article class="site-footer-col site-footer-col-center">
+                    <h3>FOLLOW US</h3>
+                    <p class="site-footer-sub">(KẾT NỐI)</p>
+                    <p>facebook.com/thoitrangtre.fanpage</p>
+                    <p>@thoitrangtre_official</p>
+                    <p>tiktok.com/@thoitrangtre</p>
+                </article>
+
+                <article class="site-footer-col">
+                    <h3>QUICK LINKS</h3>
+                    <p class="site-footer-sub">(THÔNG TIN CHUNG)</p>
+                    <ul class="site-footer-links">
+                        <li><a href="/products">ABOUT US</a></li>
+                        <li><a href="/products">FAQ</a></li>
+                        <li><a href="/products">SIZE GUIDE</a></li>
+                        <li><a href="/products">RETURNS &amp; SHIPPING</a></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <div class="site-footer-bottom">
+            <p>&copy; 2026 Thời trang trẻ. All Rights Reserved.</p>
+            <div class="site-footer-payments">
+                <span>VISA</span>
+                <span>Mastercard</span>
+                <span>PayPal</span>
+            </div>
+        </div>
+    </footer>
+
+    <div id="userChatWidget" class="chat-widget" aria-live="polite">
+        <button id="chatLauncher" class="chat-launcher" type="button">Chat với admin</button>
+
+        <section id="chatPanel" class="chat-panel chat-panel-minimized" aria-label="Kênh chat hỗ trợ">
+            <header class="chat-panel-head">
+                <h4>Hỗ trợ khách hàng</h4>
+                <div class="chat-panel-actions">
+                    <button id="chatMinimizeBtn" type="button" title="Thu nhỏ">_</button>
+                    <button id="chatExpandBtn" type="button" title="Phóng to">[]</button>
+                </div>
+            </header>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <form id="chatForm" class="chat-form">
+                <input id="chatInput" type="text" maxlength="1000" placeholder="Nhập tin nhắn cho admin..." autocomplete="off">
+                <button type="submit">Gửi</button>
+            </form>
+        </section>
+    </div>
+
+    <div id="loginRequiredModal" class="login-required-modal" aria-hidden="true">
+        <div class="login-required-card" role="dialog" aria-modal="true" aria-labelledby="loginRequiredTitle">
+            <h3 id="loginRequiredTitle">Bạn cần đăng nhập</h3>
+            <p>Bạn phải đăng nhập để sử dụng chức năng này.</p>
+            <div class="login-required-actions">
+                <button type="button" id="loginRequiredCancelBtn" class="login-required-btn-cancel">Hủy</button>
+                <a href="/auth" id="loginRequiredConfirmBtn" class="login-required-btn-login">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        window.__SHOP_AUTHENTICATED__ = [[${#authorization.expression('isAuthenticated()')}]];
+    </script>
+    <script src="/js/auth-guard.js"></script>
+    <script src="/js/site-chat.js"></script>
+</th:block>
+</body>
+</html>

@@ -16,6 +16,9 @@
     const cartSelectedSize = document.getElementById('cartSelectedSize');
     const addToCartButton = addToCartForms.length > 0 ? addToCartForms[0].querySelector('button[type="submit"]') : null;
     const cartButton = document.getElementById('headerCartBtn');
+    const similarTrack = document.getElementById('similarTrack');
+    const similarPrev = document.querySelector('.similar-nav.prev');
+    const similarNext = document.querySelector('.similar-nav.next');
 
     if (!mainImage || thumbs.length === 0) {
         return;
@@ -51,6 +54,33 @@
     }
 
     activate(0);
+
+    if (similarTrack) {
+        const step = function () {
+            return Math.max(220, Math.floor(similarTrack.clientWidth * 0.85));
+        };
+
+        if (similarPrev) {
+            similarPrev.addEventListener('click', function () {
+                similarTrack.scrollBy({ left: -step(), behavior: 'smooth' });
+            });
+        }
+
+        if (similarNext) {
+            similarNext.addEventListener('click', function () {
+                similarTrack.scrollBy({ left: step(), behavior: 'smooth' });
+            });
+        }
+
+        similarTrack.addEventListener('wheel', function (event) {
+            if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+                return;
+            }
+
+            event.preventDefault();
+            similarTrack.scrollBy({ left: event.deltaY, behavior: 'auto' });
+        }, { passive: false });
+    }
 
     const variantMap = buildVariantMap(variantRows);
     let selectedColor = '';

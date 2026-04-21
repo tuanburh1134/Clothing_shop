@@ -18,11 +18,15 @@ public class WebResourceConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String productLocation = "file:" + imageStorageUtil.getProductImageDirectoryAbsolutePath() + "/";
         String avatarLocation = "file:" + imageStorageUtil.getAvatarImageDirectoryAbsolutePath() + "/";
+        String reviewLocation = "file:" + imageStorageUtil.getReviewImageDirectoryAbsolutePath() + "/";
 
         registry.addResourceHandler("/images/products/**")
             .addResourceLocations(productLocation, "classpath:/static/images/products/");
 
         registry.addResourceHandler("/images/avatars/**")
             .addResourceLocations(avatarLocation);
+
+        registry.addResourceHandler("/images/reviews/**")
+            .addResourceLocations(reviewLocation);
     }
 }

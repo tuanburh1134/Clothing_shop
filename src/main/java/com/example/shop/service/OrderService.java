@@ -18,4 +18,8 @@ public interface OrderService {
     CustomerOrder approveOrder(Long orderId);
 
     CustomerOrder cancelOrder(Long orderId, String cancelReason);
+
+    CustomerOrder cancelOrderByUser(String username, Long orderId, String cancelReason);
+
+    CustomerOrder markOrderDeliveredByUser(String username, Long orderId);
 }

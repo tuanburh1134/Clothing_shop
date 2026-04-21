@@ -51,15 +51,16 @@ public class OrderController {
                                  Authentication authentication,
                                  HttpSession session,
                                  Model model) {
+        String username = authentication.getName();
         List<CheckoutItemInput> inputs = List.of(new CheckoutItemInput(
                 productId,
                 clean(selectedColor),
                 normalizeSize(selectedSize),
                 1
         ));
-        session.setAttribute(CHECKOUT_ITEMS_SESSION_KEY, inputs);
-        session.setAttribute(CHECKOUT_SOURCE_SESSION_KEY, "buy-now");
-        return renderCheckout(authentication.getName(), inputs, model);
+        session.setAttribute(scopedSessionKey(CHECKOUT_ITEMS_SESSION_KEY, username), inputs);
+        session.setAttribute(scopedSessionKey(CHECKOUT_SOURCE_SESSION_KEY, username), "buy-now");
+        return renderCheckout(username, inputs, model);
     }
 
     @PostMapping("/checkout/cart")
@@ -67,11 +68,12 @@ public class OrderController {
                                Authentication authentication,
                                HttpSession session,
                                Model model) {
+        String username = authentication.getName();
         if (selectedCartKeys == null || selectedCartKeys.isEmpty()) {
             return "redirect:/cart?checkoutError";
         }
 
-        Map<String, Integer> cart = getCart(session);
+        Map<String, Integer> cart = getCart(session, username);
         List<CheckoutItemInput> inputs = new ArrayList<>();
         for (String key : selectedCartKeys) {
             Integer qty = cart.get(key);
@@ -85,9 +87,9 @@ public class OrderController {
             return "redirect:/cart?checkoutError";
         }
 
-        session.setAttribute(CHECKOUT_ITEMS_SESSION_KEY, inputs);
-        session.setAttribute(CHECKOUT_SOURCE_SESSION_KEY, "cart");
-        return renderCheckout(authentication.getName(), inputs, model);
+        session.setAttribute(scopedSessionKey(CHECKOUT_ITEMS_SESSION_KEY, username), inputs);
+        session.setAttribute(scopedSessionKey(CHECKOUT_SOURCE_SESSION_KEY, username), "cart");
+        return renderCheckout(username, inputs, model);
     }
 
     @PostMapping("/checkout/confirm")
@@ -103,36 +105,38 @@ public class OrderController {
             return "redirect:/checkout/review?phoneError";
         }
 
-        List<CheckoutItemInput> inputs = getCheckoutInputs(session);
+        String username = authentication.getName();
+        List<CheckoutItemInput> inputs = getCheckoutInputs(session, username);
         if (inputs.isEmpty()) {
             return "redirect:/cart?checkoutError";
         }
 
         List<CheckoutItemView> items = orderService.buildCheckoutItems(inputs);
-        CustomerOrder order = orderService.createOrder(authentication.getName(), phoneNumber, shippingAddress, items);
-        notificationService.notifyAdminNewOrder(order.getId(), authentication.getName());
+        CustomerOrder order = orderService.createOrder(username, phoneNumber, shippingAddress, items);
+        notificationService.notifyAdminNewOrder(order.getId(), username);
 
-        String source = (String) session.getAttribute(CHECKOUT_SOURCE_SESSION_KEY);
+        String source = (String) session.getAttribute(scopedSessionKey(CHECKOUT_SOURCE_SESSION_KEY, username));
         if ("cart".equals(source)) {
-            Map<String, Integer> cart = getCart(session);
+            Map<String, Integer> cart = getCart(session, username);
             for (CheckoutItemInput input : inputs) {
                 cart.remove(buildCartKey(input.getProductId(), input.getColor(), input.getSize()));
             }
-            session.setAttribute(CART_SESSION_KEY, cart);
+            session.setAttribute(scopedSessionKey(CART_SESSION_KEY, username), cart);
         }
 
-        session.removeAttribute(CHECKOUT_ITEMS_SESSION_KEY);
-        session.removeAttribute(CHECKOUT_SOURCE_SESSION_KEY);
+        session.removeAttribute(scopedSessionKey(CHECKOUT_ITEMS_SESSION_KEY, username));
+        session.removeAttribute(scopedSessionKey(CHECKOUT_SOURCE_SESSION_KEY, username));
         return "redirect:/account/orders?ordered";
     }
 
     @GetMapping("/checkout/review")
     public String reviewCheckout(Authentication authentication, HttpSession session, Model model) {
-        List<CheckoutItemInput> inputs = getCheckoutInputs(session);
+        String username = authentication.getName();
+        List<CheckoutItemInput> inputs = getCheckoutInputs(session, username);
         if (inputs.isEmpty()) {
             return "redirect:/cart?checkoutError";
         }
-        return renderCheckout(authentication.getName(), inputs, model);
+        return renderCheckout(username, inputs, model);
     }
 
     private String renderCheckout(String username, List<CheckoutItemInput> inputs, Model model) {
@@ -149,8 +153,8 @@ public class OrderController {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Integer> getCart(HttpSession session) {
-        Object raw = session.getAttribute(CART_SESSION_KEY);
+    private Map<String, Integer> getCart(HttpSession session, String username) {
+        Object raw = session.getAttribute(scopedSessionKey(CART_SESSION_KEY, username));
         if (raw instanceof Map<?, ?> rawMap) {
             Map<String, Integer> casted = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
@@ -164,8 +168,8 @@ public class OrderController {
     }
 
     @SuppressWarnings("unchecked")
-    private List<CheckoutItemInput> getCheckoutInputs(HttpSession session) {
-        Object raw = session.getAttribute(CHECKOUT_ITEMS_SESSION_KEY);
+    private List<CheckoutItemInput> getCheckoutInputs(HttpSession session, String username) {
+        Object raw = session.getAttribute(scopedSessionKey(CHECKOUT_ITEMS_SESSION_KEY, username));
         if (raw instanceof List<?> rawList) {
             List<CheckoutItemInput> inputs = new ArrayList<>();
             for (Object item : rawList) {
@@ -182,6 +186,13 @@ public class OrderController {
             return inputs;
         }
         return List.of();
+    }
+
+    private String scopedSessionKey(String baseKey, String username) {
+        if (username == null || username.isBlank()) {
+            return baseKey;
+        }
+        return baseKey + "_" + username;
     }
 
     private String buildCartKey(Long productId, String color, String size) {

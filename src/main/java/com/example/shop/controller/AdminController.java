@@ -1,6 +1,7 @@
 package com.example.shop.controller;
 
 import com.example.shop.entity.Product;
+import com.example.shop.entity.OrderStatus;
 import com.example.shop.exception.BadRequestException;
 import com.example.shop.service.NotificationService;
 import com.example.shop.service.OrderService;
@@ -12,6 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -35,22 +42,64 @@ public class AdminController {
     }
 
     @GetMapping("/admin/dashboard")
-    public String dashboard(Model model) {
+        public String dashboard(@RequestParam(name = "period", defaultValue = "month") String period,
+                    Model model) {
         List<Product> products = productService.getAllProducts();
+        List<com.example.shop.entity.CustomerOrder> allOrders = orderService.getAllOrdersForAdmin();
 
-        long lowStockCount = products.stream()
-                .filter(product -> product.getQuantity() != null && product.getQuantity() <= 5)
-                .count();
+        String normalizedPeriod = normalizePeriod(period);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime periodStart = resolvePeriodStart(normalizedPeriod, now);
+
+        long soldUnits = allOrders.stream()
+            .filter(this::isSoldOrder)
+            .filter(order -> order.getCreatedAt() != null && !order.getCreatedAt().isBefore(periodStart))
+            .flatMap(order -> order.getItems().stream())
+            .map(item -> item.getQuantity() == null ? 0 : item.getQuantity())
+            .mapToLong(Integer::longValue)
+            .sum();
+
+        BigDecimal periodRevenue = allOrders.stream()
+            .filter(this::isSoldOrder)
+            .filter(order -> order.getCreatedAt() != null && !order.getCreatedAt().isBefore(periodStart))
+            .map(order -> order.getTotalAmount() == null ? BigDecimal.ZERO : order.getTotalAmount())
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         int totalQuantity = products.stream()
-                .map(Product::getQuantity)
-                .filter(quantity -> quantity != null)
-                .mapToInt(Integer::intValue)
-                .sum();
+            .map(Product::getQuantity)
+            .filter(quantity -> quantity != null)
+            .mapToInt(Integer::intValue)
+            .sum();
 
-        model.addAttribute("productCount", products.size());
-        model.addAttribute("lowStockCount", lowStockCount);
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM/yyyy");
+        List<String> revenueLabels = new ArrayList<>();
+        List<BigDecimal> revenueValues = new ArrayList<>();
+
+        YearMonth currentMonth = YearMonth.now();
+        for (int i = 5; i >= 0; i--) {
+            YearMonth ym = currentMonth.minusMonths(i);
+            LocalDateTime start = ym.atDay(1).atStartOfDay();
+            LocalDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay();
+
+            BigDecimal revenue = allOrders.stream()
+                .filter(this::isSoldOrder)
+                .filter(order -> order.getCreatedAt() != null
+                    && !order.getCreatedAt().isBefore(start)
+                    && order.getCreatedAt().isBefore(end))
+                .map(order -> order.getTotalAmount() == null ? BigDecimal.ZERO : order.getTotalAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            revenueLabels.add(ym.format(monthFormatter));
+            revenueValues.add(revenue);
+        }
+
+        model.addAttribute("period", normalizedPeriod);
+        model.addAttribute("periodLabel", resolvePeriodLabel(normalizedPeriod));
         model.addAttribute("totalQuantity", totalQuantity);
+        model.addAttribute("soldUnits", soldUnits);
+        model.addAttribute("periodRevenue", periodRevenue);
+        model.addAttribute("revenueLabels", revenueLabels);
+        model.addAttribute("revenueValues", revenueValues);
         return "admin/dashboard";
     }
 
@@ -61,9 +110,8 @@ public class AdminController {
     }
 
     @GetMapping("/admin/revenue")
-    public String revenue(Model model) {
-        model.addAttribute("activePage", "revenue");
-        return "admin/revenue";
+    public String revenue() {
+        return "redirect:/admin/dashboard";
     }
 
     @GetMapping("/admin/orders")
@@ -103,5 +151,37 @@ public class AdminController {
     public String chat(Model model) {
         model.addAttribute("activePage", "chat");
         return "admin/chat";
+    }
+
+    private boolean isSoldOrder(com.example.shop.entity.CustomerOrder order) {
+        return order.getStatus() == OrderStatus.APPROVED || order.getStatus() == OrderStatus.DELIVERED;
+    }
+
+    private String normalizePeriod(String period) {
+        if (period == null) {
+            return "month";
+        }
+
+        return switch (period.toLowerCase()) {
+            case "day" -> "day";
+            case "year" -> "year";
+            default -> "month";
+        };
+    }
+
+    private LocalDateTime resolvePeriodStart(String period, LocalDateTime now) {
+        return switch (period) {
+            case "day" -> now.toLocalDate().atStartOfDay();
+            case "year" -> LocalDate.of(now.getYear(), 1, 1).atStartOfDay();
+            default -> YearMonth.from(now).atDay(1).atStartOfDay();
+        };
+    }
+
+    private String resolvePeriodLabel(String period) {
+        return switch (period) {
+            case "day" -> "ngày";
+            case "year" -> "năm";
+            default -> "tháng";
+        };
     }
 }

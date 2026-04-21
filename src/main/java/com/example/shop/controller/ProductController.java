@@ -8,7 +8,9 @@ import com.example.shop.entity.Product;
 import com.example.shop.entity.ProductCategory;
 import com.example.shop.exception.BadRequestException;
 import com.example.shop.service.ProductService;
+import com.example.shop.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,9 +39,11 @@ public class ProductController {
     private static final String CART_SESSION_KEY = "SHOP_CART";
 
     private final ProductService productService;
+    private final ReviewService reviewService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ReviewService reviewService) {
         this.productService = productService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping("/products")
@@ -75,7 +79,32 @@ public class ProductController {
 
         model.addAttribute("product", product);
         model.addAttribute("galleryImages", galleryImages);
+        model.addAttribute("similarProducts", findSimilarProducts(product));
+        model.addAttribute("productReviews", reviewService.getReviewsForProduct(id));
         return "products/detail";
+    }
+
+    private List<Product> findSimilarProducts(Product product) {
+        List<Product> source;
+        if (product.getCategory() != null) {
+            source = productService.getProductsByCategory(product.getCategory());
+        } else {
+            source = productService.getAllProductsNewestFirst();
+        }
+
+        List<Product> similar = new ArrayList<>();
+        for (Product candidate : source) {
+            if (candidate.getId() != null && candidate.getId().equals(product.getId())) {
+                continue;
+            }
+
+            similar.add(candidate);
+            if (similar.size() >= 10) {
+                break;
+            }
+        }
+
+        return similar;
     }
 
     @PostMapping("/products/{id}/cart")
@@ -83,14 +112,16 @@ public class ProductController {
                             @RequestParam("selectedColor") String selectedColor,
                             @RequestParam("selectedSize") String selectedSize,
                             @RequestParam(name = "redirectTo", required = false) String redirectTo,
+                            Authentication authentication,
                             HttpSession session) {
         Product product = productService.getProductById(id);
         CartSelection selection = resolveSelection(product, selectedColor, selectedSize);
 
-        Map<String, Integer> cart = getCart(session);
+        String cartSessionKey = resolveCartSessionKey(authentication);
+        Map<String, Integer> cart = getCart(session, cartSessionKey);
         String cartKey = buildCartKey(id, selection.color(), selection.size());
         cart.merge(cartKey, 1, Integer::sum);
-        session.setAttribute(CART_SESSION_KEY, cart);
+        session.setAttribute(cartSessionKey, cart);
 
         return "redirect:" + appendQuery(resolveRedirect(redirectTo), "cartAdded");
     }
@@ -107,8 +138,9 @@ public class ProductController {
     }
 
     @GetMapping("/cart")
-    public String cartPage(HttpSession session, Model model) {
-        List<CartItemView> cartItems = buildCartItems(session);
+    public String cartPage(Authentication authentication, HttpSession session, Model model) {
+        String cartSessionKey = resolveCartSessionKey(authentication);
+        List<CartItemView> cartItems = buildCartItems(session, cartSessionKey);
         BigDecimal total = cartItems.stream()
                 .map(CartItemView::getLineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -246,8 +278,8 @@ public class ProductController {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Integer> getCart(HttpSession session) {
-        Object raw = session.getAttribute(CART_SESSION_KEY);
+    private Map<String, Integer> getCart(HttpSession session, String cartSessionKey) {
+        Object raw = session.getAttribute(cartSessionKey);
         if (raw instanceof Map<?, ?> rawMap) {
             Map<String, Integer> casted = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
@@ -260,8 +292,8 @@ public class ProductController {
         return new LinkedHashMap<>();
     }
 
-    private List<CartItemView> buildCartItems(HttpSession session) {
-        Map<String, Integer> cart = getCart(session);
+    private List<CartItemView> buildCartItems(HttpSession session, String cartSessionKey) {
+        Map<String, Integer> cart = getCart(session, cartSessionKey);
         List<CartItemView> items = new ArrayList<>();
 
         Iterator<Map.Entry<String, Integer>> iterator = cart.entrySet().iterator();
@@ -296,8 +328,15 @@ public class ProductController {
             }
         }
 
-        session.setAttribute(CART_SESSION_KEY, cart);
+        session.setAttribute(cartSessionKey, cart);
         return items;
+    }
+
+    private String resolveCartSessionKey(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            return CART_SESSION_KEY;
+        }
+        return CART_SESSION_KEY + "_" + authentication.getName();
     }
 
     private CartSelection resolveSelection(Product product, String selectedColor, String selectedSize) {

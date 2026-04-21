@@ -21,6 +21,7 @@ public class ImageStorageUtil {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final Path PRODUCT_IMAGE_DIR = Paths.get("uploads", "products");
     private static final Path AVATAR_IMAGE_DIR = Paths.get("uploads", "avatars");
+    private static final Path REVIEW_IMAGE_DIR = Paths.get("uploads", "reviews");
 
     public String storeProductImage(MultipartFile file) {
         return storeImage(file, PRODUCT_IMAGE_DIR, "/images/products/", "Cannot save product image");
@@ -28,6 +29,10 @@ public class ImageStorageUtil {
 
     public String storeAvatarImage(MultipartFile file) {
         return storeImage(file, AVATAR_IMAGE_DIR, "/images/avatars/", "Cannot save avatar image");
+    }
+
+    public String storeReviewImage(MultipartFile file) {
+        return storeImage(file, REVIEW_IMAGE_DIR, "/images/reviews/", "Cannot save review image");
     }
 
     private String storeImage(MultipartFile file,
@@ -72,6 +77,22 @@ public class ImageStorageUtil {
         return imageUrls.isEmpty() ? null : String.join("||", imageUrls);
     }
 
+    public String storeReviewImages(MultipartFile[] files) {
+        if (files == null || files.length == 0) {
+            return null;
+        }
+
+        List<String> imageUrls = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String imageUrl = storeReviewImage(file);
+            if (imageUrl != null) {
+                imageUrls.add(imageUrl);
+            }
+        }
+
+        return imageUrls.isEmpty() ? null : String.join("||", imageUrls);
+    }
+
     public void deleteProductImage(String imageUrl) {
         if (imageUrl == null || imageUrl.isBlank() || !imageUrl.startsWith("/images/products/")) {
             return;
@@ -108,5 +129,9 @@ public class ImageStorageUtil {
 
     public String getAvatarImageDirectoryAbsolutePath() {
         return AVATAR_IMAGE_DIR.toAbsolutePath().normalize().toString();
+    }
+
+    public String getReviewImageDirectoryAbsolutePath() {
+        return REVIEW_IMAGE_DIR.toAbsolutePath().normalize().toString();
     }
 }

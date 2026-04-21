@@ -248,6 +248,18 @@
     background: #fff;
     padding: 16px 10px 12px;
     text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.order-status-item:hover {
+    border-color: #9db3c8;
+    transform: translateY(-1px);
+}
+
+.order-status-item.is-active {
+    border-color: #174a8d;
+    box-shadow: 0 8px 16px rgba(23, 74, 141, 0.16);
 }
 
 .order-status-item svg {
@@ -296,6 +308,15 @@
     font-size: 18px;
 }
 
+.panel-note {
+    margin: 0 0 12px;
+    color: #46677f;
+}
+
+.order-panel[hidden] {
+    display: none !important;
+}
+
 .orders-list,
 .notifications-list {
     display: grid;
@@ -307,6 +328,27 @@
     border-radius: 10px;
     padding: 12px;
     background: #fbfdff;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    cursor: pointer;
+}
+
+.order-card.js-expandable-order > :not(header) {
+    display: none;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    border-color: #a7bfd7;
+    box-shadow: 0 8px 18px rgba(20, 56, 92, 0.12);
+}
+
+.order-card.is-expanded {
+    border-color: #2a5f94;
+    box-shadow: 0 14px 24px rgba(20, 56, 92, 0.2);
+}
+
+.order-card.is-expanded > :not(header) {
+    display: block;
 }
 
 .order-card header {
@@ -360,6 +402,164 @@
     border-color: #f2bbbb;
 }
 
+.status-chip.delivered {
+    color: #174f89;
+    background: #e3efff;
+    border-color: #c3daf9;
+}
+
+.order-action-wrap {
+    margin-top: 10px;
+}
+
+.cancel-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 220;
+    display: grid;
+    place-items: center;
+}
+
+.cancel-modal[hidden] {
+    display: none !important;
+}
+
+.cancel-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.36);
+}
+
+.cancel-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 560px);
+    padding: 10px;
+}
+
+.cancel-box {
+    margin-top: 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #e4d2d2;
+    background: #fff7f7;
+    display: grid;
+    gap: 8px;
+}
+
+.cancel-box p {
+    margin: 0;
+    color: #6a2a2a;
+}
+
+.cancel-box input,
+.review-form textarea,
+.review-form select,
+.review-form input[type="file"] {
+    width: 100%;
+    border: 1px solid #ccd8e4;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.inline-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.primary-action-btn,
+.secondary-action-btn,
+.danger-action-btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.primary-action-btn {
+    background: #0f5c63;
+    color: #fff;
+}
+
+.secondary-action-btn {
+    background: #e8eef4;
+    color: #274c69;
+}
+
+.danger-action-btn {
+    background: #ba3a3a;
+    color: #fff;
+}
+
+.delivered-products {
+    display: grid;
+    gap: 12px;
+}
+
+.delivered-item {
+    border: 1px solid #d6e3f1;
+    border-radius: 10px;
+    padding: 10px;
+    background: #f9fcff;
+}
+
+.delivered-item-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+}
+
+.delivered-item-head p {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.review-form {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+.review-form label {
+    display: block;
+    color: #244764;
+    font-weight: 600;
+}
+
+.rating-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.rating-star {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 30px;
+    line-height: 1;
+    color: #d2d9e2;
+    padding: 2px;
+    transition: transform 0.12s ease, color 0.12s ease;
+}
+
+.rating-star:hover {
+    transform: scale(1.08);
+}
+
+.rating-star.is-active {
+    color: #f4b400;
+}
+
 .notification-line {
     border: 1px solid #d7e1ec;
     border-radius: 10px;
@@ -368,6 +568,19 @@
     display: flex;
     justify-content: space-between;
     gap: 10px;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.notification-line.js-notification-card {
+    cursor: pointer;
+}
+
+.notification-line.js-notification-card:hover,
+.notification-line.js-notification-card:focus-visible {
+    transform: translateY(-2px);
+    border-color: #a7bfd7;
+    box-shadow: 0 8px 18px rgba(20, 56, 92, 0.12);
+    outline: none;
 }
 
 .notification-line p {

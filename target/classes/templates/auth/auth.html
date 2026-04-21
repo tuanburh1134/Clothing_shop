@@ -39,6 +39,9 @@
                 <span class="hint">Quên mật khẩu?</span>
             </div>
             <button type="submit" class="primary-btn">ĐĂNG NHẬP</button>
+
+            <div class="oauth-divider"><span>hoặc</span></div>
+            <a href="/oauth2/authorization/google" class="google-login-btn">Đăng nhập với Google</a>
         </form>
 
         <form id="registerForm" class="form-pane" th:action="@{/register}" method="post" th:object="${registerRequest}">
@@ -61,6 +64,8 @@
         </form>
     </section>
 </div>
+
+<div th:replace="~{fragments/site-footer :: siteFooter}"></div>
 
 <script src="/js/auth.js"></script>
 <script th:inline="javascript">

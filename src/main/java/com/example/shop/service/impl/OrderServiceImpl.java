@@ -144,8 +144,44 @@ public class OrderServiceImpl implements OrderService {
         CustomerOrder order = customerOrderRepository.findById(orderId)
                 .orElseThrow(() -> new BadRequestException("Không tìm thấy đơn hàng"));
 
+        if (order.getStatus() == OrderStatus.DELIVERED) {
+            throw new BadRequestException("Không thể hủy đơn đã giao");
+        }
+
         order.setStatus(OrderStatus.CANCELED);
         order.setCancelReason(cancelReason.trim());
+        return customerOrderRepository.save(order);
+    }
+
+    @Override
+    public CustomerOrder cancelOrderByUser(String username, Long orderId, String cancelReason) {
+        if (cancelReason == null || cancelReason.trim().isEmpty()) {
+            throw new BadRequestException("Vui lòng nhập lí do hủy đơn");
+        }
+
+        CustomerOrder order = customerOrderRepository.findByIdAndUsername(orderId, username)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException("Bạn chỉ có thể hủy đơn đang chờ xác nhận");
+        }
+
+        order.setStatus(OrderStatus.CANCELED);
+        order.setCancelReason(cancelReason.trim());
+        return customerOrderRepository.save(order);
+    }
+
+    @Override
+    public CustomerOrder markOrderDeliveredByUser(String username, Long orderId) {
+        CustomerOrder order = customerOrderRepository.findByIdAndUsername(orderId, username)
+                .orElseThrow(() -> new BadRequestException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != OrderStatus.APPROVED) {
+            throw new BadRequestException("Chỉ có thể xác nhận nhận hàng cho đơn chờ lấy hàng");
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
+        order.setCancelReason(null);
         return customerOrderRepository.save(order);
     }
 
